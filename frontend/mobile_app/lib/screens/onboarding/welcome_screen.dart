@@ -41,7 +41,12 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Image.asset('assets/images/logo_transparent.png', width: 32, height: 32),
+                      Image.asset(
+                        'assets/images/logo_transparent.png',
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(Strings.appName, style: Theme.of(context).textTheme.headlineMedium),
                     ],

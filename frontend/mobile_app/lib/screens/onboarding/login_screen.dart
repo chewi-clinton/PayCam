@@ -107,10 +107,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 88,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryDark,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
+                  boxShadow: AppShadows.level1,
                 ),
-                child: Image.asset('assets/images/logo_transparent.png', color: Colors.white),
+                child: Image.asset(
+                  'assets/images/logo_transparent.png',
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(Strings.appName, style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 36)),

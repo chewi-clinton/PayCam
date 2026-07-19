@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Base URL for the PayCam backend. iOS Simulator shares the host's
-/// network namespace, so localhost:8001 reaches the docker-compose
-/// `api` service published on that port (see backend/docker-compose.yml).
-/// Swap for a LAN IP if running on a physical device.
-const String kApiBaseUrl = 'http://localhost:8001/api/v1';
+/// Base URL for the PayCam backend, deployed on Dokploy.
+const String kApiBaseUrl = 'https://paycam.zardocard.com/api/v1';
 
 class ApiException implements Exception {
   final int statusCode;

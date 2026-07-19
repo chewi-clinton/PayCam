@@ -1,5 +1,9 @@
-# Secrets — never commit service-account keys or credentials
-secrets/
+# Secrets — never commit service-account keys or credentials.
+# The .example.json placeholder is intentionally allowed through so
+# contributors can see what's expected without the real file ever
+# being tracked.
+secrets/*
+!secrets/*.example.json
 *.pem
 *.key
 

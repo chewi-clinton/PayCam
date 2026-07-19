@@ -1,0 +1,79 @@
+services:
+  api:
+    build: .
+    container_name: paycam-api
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+
+  celery_worker:
+    build: .
+    container_name: paycam-celery-worker
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    command: celery -A config worker -l info -c 4
+
+  celery_beat:
+    build: .
+    container_name: paycam-celery-beat
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    command: celery -A config beat -l info
+
+  postgres:
+    image: postgres:17
+    container_name: paycam-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paycam
+      POSTGRES_USER: yxng_ac
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-paycam}
+  redis:
+    image: redis:7-alpine
+    container_name: paycam-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: paycam-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  postgres_data:
+  redis_data:

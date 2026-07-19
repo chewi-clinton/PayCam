@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -49,7 +50,7 @@ class AppRegisterTests(FakeRedisMixin, TestCase):
         user = MobileAppUser.objects.get(phone_number="237670123456")
         self.assertEqual(user.network, "MTN")
         self.assertNotEqual(user.pin_hash, "1234")  # never stored raw
-        self.assertEqual(user.wallet.balance, 0)
+        self.assertEqual(user.wallet.balance, settings.FAUCET_AMOUNT)
         self.assertEqual(
             set(CryptoWallet.objects.filter(user=user).values_list("currency", flat=True)),
             {"BTC", "ETH", "USDT"},

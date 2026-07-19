@@ -95,7 +95,7 @@ class CryptoWalletListView(generics.ListAPIView):
 @extend_schema(
     tags=["Mobile App"],
     summary="Register customer",
-    description="Customer registers with phone number, full name, PIN, and email. Network auto-detected from phone prefix. Wallet created automatically.",
+    description="Customer registers with phone number, full name, PIN, and email. Network auto-detected from phone prefix. Wallet created automatically and pre-funded with the sandbox faucet amount.",
 )
 class AppRegisterView(generics.CreateAPIView):
     queryset = MobileAppUser.objects.all()
@@ -106,7 +106,7 @@ class AppRegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        Wallet.objects.create(user=user, network=user.network, balance=0)
+        Wallet.objects.create(user=user, network=user.network, balance=settings.FAUCET_AMOUNT)
 
         crypto_wallets = []
         for currency in ("BTC", "ETH", "USDT"):

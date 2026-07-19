@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/strings.dart';
 import '../../state/app_state.dart';
@@ -16,10 +17,57 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   int _index = 0;
+  final _localAuth = LocalAuthentication();
+  bool _locked = false;
+  bool _authenticating = false;
 
   void goTo(int index) => setState(() => _index = index);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.appState.settings.biometricLock) {
+      _locked = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tryUnlock());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused && widget.appState.settings.biometricLock) {
+      setState(() => _locked = true);
+    }
+  }
+
+  Future<void> _tryUnlock() async {
+    if (_authenticating) return;
+    _authenticating = true;
+    try {
+      final supported = await _localAuth.isDeviceSupported();
+      if (!supported) {
+        setState(() => _locked = false);
+        return;
+      }
+      final ok = await _localAuth.authenticate(
+        localizedReason: 'Unlock PayCam',
+        options: const AuthenticationOptions(stickyAuth: true),
+      );
+      if (ok && mounted) setState(() => _locked = false);
+    } catch (_) {
+      // Leave locked; user can retry via the button on the lock screen.
+    } finally {
+      _authenticating = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +89,57 @@ class _MainShellState extends State<MainShell> {
             ],
           );
 
-    return Scaffold(
-      body: body,
-      bottomNavigationBar: _BottomNav(index: _index, onTap: goTo),
+    return Stack(
+      children: [
+        Scaffold(
+          body: body,
+          bottomNavigationBar: _BottomNav(index: _index, onTap: goTo),
+        ),
+        if (_locked) _LockScreen(onUnlock: _tryUnlock),
+      ],
+    );
+  }
+}
+
+class _LockScreen extends StatelessWidget {
+  const _LockScreen({required this.onUnlock});
+  final VoidCallback onUnlock;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: AppShadows.level1,
+                ),
+                child: Image.asset('assets/images/logo_transparent.png', fit: BoxFit.contain),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text('PayCam Locked', style: Theme.of(context).textTheme.headlineLarge),
+              const SizedBox(height: AppSpacing.sm),
+              Text('Unlock with Face ID / Touch ID to continue',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: AppSpacing.xl),
+              ElevatedButton.icon(
+                onPressed: onUnlock,
+                icon: const Icon(Icons.fingerprint),
+                label: const Text('Unlock'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

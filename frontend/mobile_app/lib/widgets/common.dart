@@ -14,7 +14,7 @@ class StatusChip extends StatelessWidget {
     switch (status) {
       case 'success':
         bg = AppColors.primary.withValues(alpha: 0.1);
-        fg = AppColors.primaryDark;
+        fg = AppColors.primary;
         label = Strings.filterSuccess;
         break;
       case 'pending':

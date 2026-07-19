@@ -100,7 +100,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              _BalanceCard(loading: _loading, wallet: wallet, phone: user?.phoneNumber),
+              _BalanceCard(
+                loading: _loading,
+                wallet: wallet,
+                phone: user?.phoneNumber,
+                hiddenByDefault: widget.appState.settings.hideBalanceOnLock,
+              ),
               const SizedBox(height: AppSpacing.lg),
               _QuickActions(appState: widget.appState, onNavigate: widget.onNavigate),
               const SizedBox(height: AppSpacing.lg),
@@ -181,11 +186,32 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 }
 
-class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.loading, required this.wallet, required this.phone});
+class _BalanceCard extends StatefulWidget {
+  const _BalanceCard({
+    required this.loading,
+    required this.wallet,
+    required this.phone,
+    required this.hiddenByDefault,
+  });
   final bool loading;
   final Wallet? wallet;
   final String? phone;
+  final bool hiddenByDefault;
+
+  @override
+  State<_BalanceCard> createState() => _BalanceCardState();
+}
+
+class _BalanceCardState extends State<_BalanceCard> {
+  late bool _revealed = !widget.hiddenByDefault;
+
+  @override
+  void didUpdateWidget(covariant _BalanceCard old) {
+    super.didUpdateWidget(old);
+    if (widget.hiddenByDefault != old.hiddenByDefault) {
+      _revealed = !widget.hiddenByDefault;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,18 +232,34 @@ class _BalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(Strings.availableBalance, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(Strings.availableBalance, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+              if (widget.hiddenByDefault) ...[
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () => setState(() => _revealed = !_revealed),
+                  child: Icon(
+                    _revealed ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    size: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: AppSpacing.sm),
-          loading && wallet == null
+          widget.loading && widget.wallet == null
               ? const SizedBox(
                   height: 40, width: 40,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                 )
               : Text(
-                  formatCurrency(wallet?.balance ?? 0, 'XAF'),
+                  _revealed ? formatCurrency(widget.wallet?.balance ?? 0, 'XAF') : '•••••• XAF',
                   style: monoNumeric(size: 34, weight: FontWeight.w800, color: Colors.white),
                 ),
-          if (phone != null) ...[
+          if (widget.phone != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -230,7 +272,7 @@ class _BalanceCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.smartphone, size: 14, color: Colors.white),
                   const SizedBox(width: 6),
-                  Text('+$phone', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                  Text('+${widget.phone}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                 ],
               ),
             ),

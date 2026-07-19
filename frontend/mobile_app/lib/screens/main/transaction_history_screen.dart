@@ -102,7 +102,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 18),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.primaryDark : AppColors.surfaceContainer,
+                          color: selected ? AppColors.primary : AppColors.surfaceContainer,
                           borderRadius: BorderRadius.circular(AppRadii.full),
                         ),
                         child: Text(

@@ -8,6 +8,8 @@
 	<string>PayCam needs camera access to scan merchant payment QR codes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PayCam needs photo library access to scan a QR code from an image.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>PayCam uses Face ID to unlock the app when Biometric Lock is enabled.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

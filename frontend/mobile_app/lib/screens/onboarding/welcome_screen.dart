@@ -7,19 +7,10 @@ import '../../state/app_state.dart';
 import 'registration_screen.dart';
 import 'login_screen.dart';
 import 'legal_screen.dart';
-import '../main/main_shell.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key, required this.appState});
   final AppState appState;
-
-  void _skipToDemo(BuildContext context) {
-    appState.enableDemoMode();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => MainShell(appState: appState)),
-      (route) => false,
-    );
-  }
 
   void _openLegal(BuildContext context, LegalKind kind) {
     Navigator.of(context).push(
@@ -37,24 +28,15 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.lg),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/logo_transparent.png',
-                        width: 32,
-                        height: 32,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(Strings.appName, style: Theme.of(context).textTheme.headlineMedium),
-                    ],
+                  Image.asset(
+                    'assets/images/logo_transparent.png',
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
                   ),
-                  TextButton(
-                    onPressed: () => _skipToDemo(context),
-                    child: Text(Strings.skip),
-                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(Strings.appName, style: Theme.of(context).textTheme.headlineMedium),
                 ],
               ),
               const Spacer(),

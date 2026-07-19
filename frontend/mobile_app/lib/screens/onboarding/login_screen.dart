@@ -7,7 +7,6 @@ import '../../widgets/common.dart';
 import 'registration_screen.dart';
 import 'otp_verification_screen.dart';
 import 'forgot_pin_screen.dart';
-import '../main/main_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.appState, this.prefillPhone});
@@ -89,19 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.margin),
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: () {
-                    widget.appState.enableDemoMode();
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => MainShell(appState: widget.appState)),
-                      (route) => false,
-                    );
-                  },
-                  child: Text(Strings.skip),
-                ),
-              ),
+              const SizedBox(height: AppSpacing.lg),
               Container(
                 width: 88,
                 height: 88,

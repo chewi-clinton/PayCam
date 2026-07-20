@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,7 +83,14 @@ export default function WebhooksPage() {
             <TableBody>
               {logs.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-mono text-xs">{log.transaction}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/transactions/${log.transaction_reference}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {log.transaction_reference}
+                    </Link>
+                  </TableCell>
                   <TableCell className="max-w-48 truncate text-sm text-muted-foreground">
                     {log.url}
                   </TableCell>

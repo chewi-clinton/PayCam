@@ -109,6 +109,7 @@ export type Transaction = {
 export type WebhookLog = {
   id: number;
   transaction: string;
+  transaction_reference: string;
   attempt_number: number;
   url: string;
   http_status: number | null;

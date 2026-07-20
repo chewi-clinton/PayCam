@@ -2,7 +2,7 @@
 
 import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
@@ -26,6 +26,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="hidden md:block" />
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
+          <AvatarImage src="/brand/avatar.png" alt="" />
           <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
             {initials}
           </AvatarFallback>

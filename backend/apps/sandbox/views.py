@@ -69,13 +69,6 @@ class FaucetView(generics.CreateAPIView):
         )
 
 
-FAUCET_AMOUNTS = {
-    "BTC": "0.0005",
-    "ETH": "0.01",
-    "USDT": "50.00",
-}
-
-
 @extend_schema(
     tags=["Sandbox"],
     summary="Crypto faucet",
@@ -106,7 +99,7 @@ class CryptoFaucetView(generics.GenericAPIView):
                 body, code = error_response("PAY_CAM_4005")
                 return Response(body, status=code)
 
-            amount = FAUCET_AMOUNTS[data["currency"]]
+            amount = settings.CRYPTO_FAUCET_AMOUNTS[data["currency"]]
             wallet.balance = wallet.balance + Decimal(amount)
             wallet.save(update_fields=["balance", "updated_at"])
             store_crypto_faucet_claim(wallet.id)

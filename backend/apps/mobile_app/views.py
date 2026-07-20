@@ -180,7 +180,7 @@ class AppRegisterVerifyView(generics.GenericAPIView):
             crypto_wallets.append(
                 CryptoWallet.objects.create(
                     user=user, currency=currency, testnet_address=address,
-                    network=network, balance=0,
+                    network=network, balance=settings.CRYPTO_FAUCET_AMOUNTS[currency],
                 )
             )
 

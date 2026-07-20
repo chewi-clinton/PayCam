@@ -171,6 +171,11 @@ PIN_LOCKOUT_MINUTES = 10
 MAX_PIN_ATTEMPTS = 3
 MAX_OTP_ATTEMPTS = 3
 FAUCET_AMOUNT = 10000
+CRYPTO_FAUCET_AMOUNTS = {
+    "BTC": "0.0005",
+    "ETH": "0.01",
+    "USDT": "50.00",
+}
 
 from celery.schedules import crontab
 

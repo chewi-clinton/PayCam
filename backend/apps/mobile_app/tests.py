@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.conf import settings
@@ -76,10 +77,12 @@ class AppRegisterTests(FakeRedisMixin, TestCase):
         self.assertEqual(user.network, "MTN")
         self.assertNotEqual(user.pin_hash, "1234")  # never stored raw
         self.assertEqual(user.wallet.balance, settings.FAUCET_AMOUNT)
-        self.assertEqual(
-            set(CryptoWallet.objects.filter(user=user).values_list("currency", flat=True)),
-            {"BTC", "ETH", "USDT"},
+        crypto_balances = dict(
+            CryptoWallet.objects.filter(user=user).values_list("currency", "balance")
         )
+        self.assertEqual(set(crypto_balances), {"BTC", "ETH", "USDT"})
+        for currency, expected in settings.CRYPTO_FAUCET_AMOUNTS.items():
+            self.assertEqual(crypto_balances[currency], Decimal(expected))
 
     @patch("apps.mobile_app.views.generate_otp", return_value="123456")
     @patch("apps.mobile_app.views.send_email_otp", return_value=True)

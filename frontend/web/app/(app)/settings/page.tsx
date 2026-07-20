@@ -1,0 +1,233 @@
+"use client";
+
+import { useState } from "react";
+import { Copy, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { api, ApiError } from "@/lib/api-client";
+import { formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth-context";
+
+function TwoFactorSetup() {
+  const { refreshProfile } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"password" | "verify">("password");
+  const [password, setPassword] = useState("");
+  const [secret, setSecret] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const reset = () => {
+    setOpen(false);
+    setStep("password");
+    setPassword("");
+    setSecret("");
+    setCode("");
+    setError(null);
+  };
+
+  const handleStart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await api.totpSetup(password);
+      setSecret(res.secret);
+      setStep("verify");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to start 2FA setup.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await api.totpVerify(code);
+      toast.success("Two-factor authentication enabled");
+      await refreshProfile();
+      reset();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Invalid code. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : reset())}>
+      <DialogTrigger
+        render={
+          <Button size="sm">
+            <ShieldCheck className="h-4 w-4" /> Enable 2FA
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {step === "password" ? "Confirm your password" : "Scan or enter the key"}
+          </DialogTitle>
+        </DialogHeader>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {step === "password" ? (
+          <form onSubmit={handleStart} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="setup-password">Password</Label>
+              <Input
+                id="setup-password"
+                type="password"
+                required
+                autoFocus
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Confirming…" : "Continue"}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <form onSubmit={handleVerify} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Add this key to your authenticator app (Google Authenticator, Authy, 1Password),
+              then enter the 6-digit code it generates.
+            </p>
+            <div className="space-y-2">
+              <Label>Setup key</Label>
+              <div className="flex gap-2">
+                <Input readOnly value={secret} className="font-mono text-xs" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    navigator.clipboard.writeText(secret);
+                    toast.success("Setup key copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="verify-code">6-digit code</Label>
+              <Input
+                id="verify-code"
+                inputMode="numeric"
+                maxLength={6}
+                required
+                autoFocus
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="123456"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Verifying…" : "Enable 2FA"}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function SettingsPage() {
+  const { merchant, logout } = useAuth();
+
+  if (!merchant) return null;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>Your PayCam merchant account details.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between border-b border-border py-2">
+            <span className="text-sm text-muted-foreground">Name</span>
+            <span className="text-sm font-medium">
+              {merchant.first_name} {merchant.last_name}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-b border-border py-2">
+            <span className="text-sm text-muted-foreground">Email</span>
+            <span className="text-sm font-medium">{merchant.email}</span>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-sm text-muted-foreground">Merchant since</span>
+            <span className="text-sm font-medium">{formatDate(merchant.created_at)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Two-factor authentication</CardTitle>
+            <CardDescription>Required before you can create API keys.</CardDescription>
+          </div>
+          {merchant.totp_enabled ? (
+            <Badge variant="outline" className="text-success border-success/30 bg-success/10">
+              Enabled
+            </Badge>
+          ) : (
+            <TwoFactorSetup />
+          )}
+        </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session</CardTitle>
+          <CardDescription>
+            Sign out of every device and session currently signed in as you.
+          </CardDescription>
+        </CardHeader>
+        <Separator />
+        <CardFooter className="pt-6">
+          <Button variant="destructive" onClick={logout}>
+            Log out everywhere
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}

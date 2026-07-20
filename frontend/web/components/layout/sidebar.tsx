@@ -9,6 +9,8 @@ import {
   KeyRound,
   Webhook,
   Settings,
+  FlaskConical,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,14 +19,16 @@ const NAV_ITEMS = [
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/api-keys", label: "API Keys", icon: KeyRound },
   { href: "/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/sandbox", label: "Sandbox", icon: FlaskConical },
+  { href: "/docs", label: "Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar() {
+function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+    <>
       <div className="flex items-center gap-2.5 px-6 py-5">
         <Image src="/brand/logo-badge-black.png" alt="PayCam" width={28} height={28} className="rounded-md" />
         <span className="text-lg font-semibold">PayCam</span>
@@ -36,6 +40,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 active
@@ -49,6 +54,41 @@ export function Sidebar() {
           );
         })}
       </nav>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar({
+  mobileOpen,
+  onMobileClose,
+}: {
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+}) {
+  return (
+    <>
+      {/* Desktop: static sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
+        <Nav />
+      </aside>
+
+      {/* Mobile: backdrop + slide-in drawer */}
+      <div
+        aria-hidden={!mobileOpen}
+        onClick={onMobileClose}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 md:hidden",
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar shadow-xl transition-transform duration-300 ease-out md:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Nav onNavigate={onMobileClose} />
+      </aside>
+    </>
   );
 }

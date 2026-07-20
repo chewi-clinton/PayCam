@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -9,6 +9,7 @@ import { Topbar } from "@/components/layout/topbar";
 function Guard({ children }: { children: React.ReactNode }) {
   const { merchant, loading } = useAuth();
   const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !merchant) {
@@ -26,9 +27,9 @@ function Guard({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-y-auto bg-muted/30 p-6">{children}</main>
       </div>
     </div>

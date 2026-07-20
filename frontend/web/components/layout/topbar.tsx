@@ -1,12 +1,11 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
 
-export function Topbar() {
+export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { merchant, logout } = useAuth();
 
   const initials = merchant
@@ -14,10 +13,17 @@ export function Topbar() {
     : "";
 
   return (
-    <header className="flex items-center justify-between border-b border-border bg-background px-6 py-4">
-      <Badge variant="outline" className="text-success border-success/30 bg-success/10">
-        Live
-      </Badge>
+    <header className="flex items-center justify-between border-b border-border bg-background px-4 py-4 sm:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden"
+        onClick={onMenuClick}
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+      <div className="hidden md:block" />
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">

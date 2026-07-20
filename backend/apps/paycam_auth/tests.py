@@ -55,6 +55,8 @@ class MerchantRegisterTests(FakeRedisMixin, TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(User.objects.get(email="new@example.com").is_active)
+        self.assertIn("access_token", response.data)
+        self.assertEqual(response.data["token_type"], "Bearer")
 
 
 class MerchantLoginTests(FakeRedisMixin, TestCase):

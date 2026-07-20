@@ -89,8 +89,14 @@ class EmailVerifyView(generics.GenericAPIView):
         if verify_email_otp(user.id, otp):
             user.is_active = True
             user.save(update_fields=["is_active"])
+            token = generate_jwt(user.id, user.token_version)
             return Response(
-                {"message": "Email verified successfully. You can now log in."},
+                {
+                    "message": "Email verified successfully.",
+                    "access_token": token,
+                    "token_type": "Bearer",
+                    "expires_in": settings.JWT_ACCESS_EXPIRE_MINUTES * 60,
+                },
                 status=status.HTTP_200_OK,
             )
         else:

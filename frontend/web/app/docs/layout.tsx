@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { DocsProvider } from "@/lib/docs-context";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
@@ -28,12 +29,15 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
               <span className="text-base font-semibold">PayCam Docs</span>
             </Link>
           </div>
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            Go to Dashboard →
-          </Link>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Go to Dashboard →
+            </Link>
+          </div>
         </header>
 
         <div className="flex flex-1 overflow-hidden">

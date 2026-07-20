@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -24,8 +25,8 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
-      <div className="flex items-center gap-2 px-6 py-5">
-        <span className="h-7 w-7 rounded-md bg-primary" />
+      <div className="flex items-center gap-2.5 px-6 py-5">
+        <Image src="/brand/logo-badge-black.png" alt="PayCam" width={28} height={28} className="rounded-md" />
         <span className="text-lg font-semibold">PayCam</span>
       </div>
       <nav className="flex-1 space-y-1 px-3">

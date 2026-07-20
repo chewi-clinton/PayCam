@@ -1,17 +1,19 @@
+import Image from "next/image";
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-12 lg:w-1/2 lg:px-20">
         <div className="mx-auto w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-2">
-            <span className="h-8 w-8 rounded-md bg-primary" />
+          <div className="mb-8 flex items-center gap-2.5">
+            <Image src="/brand/logo-badge-black.png" alt="PayCam" width={32} height={32} className="rounded-md" />
             <span className="text-xl font-semibold">PayCam</span>
           </div>
           {children}
         </div>
       </div>
       <div className="relative hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
-        <div />
+        <Image src="/brand/logo-badge-white.png" alt="PayCam" width={40} height={40} className="rounded-md" />
         <div className="space-y-4">
           <h2 className="text-3xl font-semibold leading-tight">
             Accept mobile money, cards, and crypto payments across Cameroon.

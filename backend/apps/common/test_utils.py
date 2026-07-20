@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.paycam_auth.models import User, APIKey
-from apps.paycam_auth.utils import generate_api_key, hash_api_key, generate_webhook_secret
+from apps.paycam_auth.utils import generate_api_key, hash_api_key, generate_webhook_secret, generate_jwt
 from apps.mobile_app.models import MobileAppUser, Wallet, CryptoWallet
 from apps.mobile_app.utils import hash_pin
 
@@ -86,6 +86,10 @@ def make_customer(phone_number="237670123456", pin="1234", balance=0, with_crypt
                 network=network, balance=0,
             )
     return user
+
+
+def merchant_jwt(merchant):
+    return generate_jwt(merchant.id, merchant.token_version)
 
 
 def app_jwt(user, minutes=5):

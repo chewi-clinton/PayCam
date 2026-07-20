@@ -150,7 +150,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 JWT_SECRET = SECRET_KEY
-JWT_ACCESS_EXPIRE_MINUTES = 30
+JWT_ACCESS_EXPIRE_MINUTES = 480
 JWT_REFRESH_EXPIRE_DAYS = 7
 
 TOTP_ISSUER_NAME = "PayCam"
@@ -205,6 +205,7 @@ SPECTACULAR_SETTINGS = {
         {"name": "Sandbox", "description": "V1 — Test credit faucet (XAF + crypto)."},
         {"name": "Mobile App", "description": "V1 — Flutter app customer endpoints (registration, login, payment approval)."},
         {"name": "Webhooks", "description": "V1 — Webhook delivery logs and verification utilities"},
+        {"name": "Dashboard", "description": "Merchant dashboard aggregate stats (Next.js frontend)."},
     ],
 }
 

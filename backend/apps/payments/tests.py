@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.common.test_utils import FakeRedisMixin, make_merchant, make_api_key, make_customer
+from apps.common.test_utils import FakeRedisMixin, make_merchant, make_api_key, make_customer, merchant_jwt
 from .models import Transaction
 from .utils import generate_transaction_reference
 
@@ -150,3 +150,20 @@ class PaymentReadTests(FakeRedisMixin, TestCase):
         response = self.client.get("/api/v1/payments/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
+
+    def test_dashboard_jwt_can_list_and_read(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.merchant)}")
+        list_response = client.get("/api/v1/payments/")
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.data["count"], 1)
+        detail_response = client.get(f"/api/v1/payments/{self.txn.reference}/")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.data["reference"], self.txn.reference)
+
+    def test_dashboard_jwt_scoped_to_merchant(self):
+        other = make_merchant(email="dashboard-other@example.com")
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(other)}")
+        response = client.get(f"/api/v1/payments/{self.txn.reference}/")
+        self.assertEqual(response.status_code, 404)

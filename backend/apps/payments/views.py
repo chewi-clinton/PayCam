@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from apps.paycam_auth.api_key_authentication import APIKeyAuthentication
+from apps.paycam_auth.authentication import JWTAuthentication
 from apps.common.throttling import PaymentInitiateThrottle, PaymentReadThrottle
 from apps.mobile_app.models import MobileAppUser
 from apps.webhooks.tasks import fire_webhook
@@ -121,7 +122,7 @@ class InitiatePaymentView(generics.CreateAPIView):
     description="Retrieve a single transaction by reference. Scoped to the authenticated merchant.",
 )
 class PaymentDetailView(generics.RetrieveAPIView):
-    authentication_classes = [APIKeyAuthentication]
+    authentication_classes = [APIKeyAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]
     throttle_classes = [PaymentReadThrottle]
     serializer_class = TransactionSerializer
@@ -138,7 +139,7 @@ class PaymentDetailView(generics.RetrieveAPIView):
     description="Paginated list of all transactions for the authenticated merchant.",
 )
 class PaymentListView(generics.ListAPIView):
-    authentication_classes = [APIKeyAuthentication]
+    authentication_classes = [APIKeyAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]
     throttle_classes = [PaymentReadThrottle]
     serializer_class = TransactionSerializer

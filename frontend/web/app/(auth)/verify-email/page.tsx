@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { api, ApiError } from "@/lib/api-client";
+import { api, ApiError, setToken } from "@/lib/api-client";
 
 function VerifyEmailForm() {
   const router = useRouter();
@@ -23,9 +23,10 @@ function VerifyEmailForm() {
     setError(null);
     setLoading(true);
     try {
-      await api.verifyEmail({ email, otp });
+      const res = await api.verifyEmail({ email, otp });
+      setToken(res.access_token);
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 1500);
+      setTimeout(() => router.push("/dashboard"), 800);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -44,7 +45,7 @@ function VerifyEmailForm() {
 
       {success ? (
         <Alert>
-          <AlertDescription>Email verified — taking you to login…</AlertDescription>
+          <AlertDescription>Email verified — taking you to your dashboard…</AlertDescription>
         </Alert>
       ) : (
         <>

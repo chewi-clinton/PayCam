@@ -142,11 +142,14 @@ export const api = {
     }),
 
   verifyEmail: (data: { email: string; otp: string }) =>
-    request<{ message: string }>("/auth/verify-email/", {
-      method: "POST",
-      body: JSON.stringify(data),
-      auth: false,
-    }),
+    request<{ message: string; access_token: string; token_type: string; expires_in: number }>(
+      "/auth/verify-email/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        auth: false,
+      }
+    ),
 
   login: (data: { email: string; password: string; totp_code?: string }) =>
     request<{ access_token: string; token_type: string; expires_in: number }>("/auth/login/", {

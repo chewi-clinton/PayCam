@@ -141,6 +141,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://paycam.cm",
     "https://dashboard.paycam.cm",
+    "https://paycam-dashboard.zardocard.com",
 ]
 
 CELERY_BROKER_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")

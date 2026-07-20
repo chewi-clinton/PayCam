@@ -1,3 +1,4 @@
+import json
 import random
 import bcrypt
 import redis
@@ -113,3 +114,18 @@ def verify_change_pin_otp(user_id, otp):
         get_redis_client().delete(key)
         return True
     return False
+
+
+def store_pending_registration(phone_number, otp, data):
+    key = f"otp:register:{phone_number}"
+    get_redis_client().setex(key, 600, json.dumps({"otp": otp, **data}))
+
+
+def get_pending_registration(phone_number):
+    key = f"otp:register:{phone_number}"
+    stored = get_redis_client().get(key)
+    return json.loads(stored) if stored else None
+
+
+def clear_pending_registration(phone_number):
+    get_redis_client().delete(f"otp:register:{phone_number}")

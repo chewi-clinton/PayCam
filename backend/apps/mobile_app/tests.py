@@ -11,8 +11,8 @@ from .models import MobileAppUser, CryptoWallet
 from .utils import detect_network, normalize_phone
 
 REGISTER_URL = "/api/v1/app/register/"
+REGISTER_VERIFY_URL = "/api/v1/app/register/verify-otp/"
 LOGIN_URL = "/api/v1/app/login/"
-VERIFY_OTP_URL = "/api/v1/app/verify-otp/"
 PENDING_URL = "/api/v1/app/payments/pending/"
 
 
@@ -35,7 +35,8 @@ class AppRegisterTests(FakeRedisMixin, TestCase):
         super().setUp()
         self.client = APIClient()
 
-    def test_register_creates_wallets(self):
+    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
+    def test_register_sends_otp_without_creating_user(self, mock_send):
         response = self.client.post(
             REGISTER_URL,
             {
@@ -46,7 +47,31 @@ class AppRegisterTests(FakeRedisMixin, TestCase):
             },
             format="json",
         )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["delivery_method"], "email")
+        self.assertEqual(MobileAppUser.objects.count(), 0)
+        mock_send.assert_called_once()
+
+    @patch("apps.mobile_app.views.generate_otp", return_value="123456")
+    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
+    def test_verify_otp_creates_wallets_and_returns_token(self, mock_send, mock_otp):
+        self.client.post(
+            REGISTER_URL,
+            {
+                "phone_number": "237670123456",
+                "full_name": "Jean Pierre",
+                "pin": "1234",
+                "email": "jean@example.com",
+            },
+            format="json",
+        )
+        response = self.client.post(
+            REGISTER_VERIFY_URL,
+            {"phone_number": "237670123456", "otp": "123456"},
+            format="json",
+        )
         self.assertEqual(response.status_code, 201)
+        self.assertIn("token", response.data)
         user = MobileAppUser.objects.get(phone_number="237670123456")
         self.assertEqual(user.network, "MTN")
         self.assertNotEqual(user.pin_hash, "1234")  # never stored raw
@@ -55,6 +80,27 @@ class AppRegisterTests(FakeRedisMixin, TestCase):
             set(CryptoWallet.objects.filter(user=user).values_list("currency", flat=True)),
             {"BTC", "ETH", "USDT"},
         )
+
+    @patch("apps.mobile_app.views.generate_otp", return_value="123456")
+    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
+    def test_wrong_registration_otp_rejected(self, mock_send, mock_otp):
+        self.client.post(
+            REGISTER_URL,
+            {
+                "phone_number": "237670123456",
+                "full_name": "Jean Pierre",
+                "pin": "1234",
+                "email": "jean@example.com",
+            },
+            format="json",
+        )
+        response = self.client.post(
+            REGISTER_VERIFY_URL,
+            {"phone_number": "237670123456", "otp": "000000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(MobileAppUser.objects.count(), 0)
 
     def test_unknown_prefix_blocked(self):
         response = self.client.post(
@@ -84,14 +130,16 @@ class AppLoginTests(FakeRedisMixin, TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data["error"], "account_not_found")
 
-    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
-    def test_correct_pin_sends_otp(self, mock_send):
+    def test_correct_pin_returns_token(self):
         response = self.client.post(
             LOGIN_URL, {"phone_number": "237670123456", "pin": "1234"}, format="json"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["delivery_method"], "email")
-        mock_send.assert_called_once()
+        token = response.data["token"]
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        pending = client.get(PENDING_URL)
+        self.assertEqual(pending.status_code, 200)
 
     def test_wrong_pin_decrements_remaining(self):
         response = self.client.post(
@@ -110,39 +158,6 @@ class AppLoginTests(FakeRedisMixin, TestCase):
         )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data["error"], "account_locked")
-
-    @patch("apps.mobile_app.views.generate_otp", return_value="123456")
-    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
-    def test_full_login_flow_returns_jwt(self, mock_send, mock_otp):
-        self.client.post(
-            LOGIN_URL, {"phone_number": "237670123456", "pin": "1234"}, format="json"
-        )
-        response = self.client.post(
-            VERIFY_OTP_URL,
-            {"phone_number": "237670123456", "otp": "123456"},
-            format="json",
-        )
-        self.assertEqual(response.status_code, 200)
-        token = response.data["token"]
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
-        pending = client.get(PENDING_URL)
-        self.assertEqual(pending.status_code, 200)
-
-    @patch("apps.mobile_app.views.generate_otp", return_value="123456")
-    @patch("apps.mobile_app.views.send_email_otp", return_value=True)
-    def test_wrong_otp_rejected(self, mock_send, mock_otp):
-        self.client.post(
-            LOGIN_URL, {"phone_number": "237670123456", "pin": "1234"}, format="json"
-        )
-        response = self.client.post(
-            VERIFY_OTP_URL,
-            {"phone_number": "237670123456", "otp": "000000"},
-            format="json",
-        )
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["error"], "invalid_otp")
-
 
 class ApproveDeclineTests(FakeRedisMixin, TestCase):
     def setUp(self):

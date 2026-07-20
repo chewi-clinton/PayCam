@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     AppRegisterView,
+    AppRegisterVerifyView,
     AppLoginView,
     AppOTPVerifyView,
     PendingPaymentsView,
@@ -17,6 +18,7 @@ from .views import (
 
 urlpatterns = [
     path("register/", AppRegisterView.as_view(), name="app-register"),
+    path("register/verify-otp/", AppRegisterVerifyView.as_view(), name="app-register-verify-otp"),
     path("login/", AppLoginView.as_view(), name="app-login"),
     path("verify-otp/", AppOTPVerifyView.as_view(), name="app-verify-otp"),
     path("payments/pending/", PendingPaymentsView.as_view(), name="pending-payments"),

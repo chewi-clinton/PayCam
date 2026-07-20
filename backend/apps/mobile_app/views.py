@@ -40,6 +40,9 @@ from .utils import (
     clear_otp_attempts,
     store_change_pin_otp,
     verify_change_pin_otp,
+    store_pending_registration,
+    get_pending_registration,
+    clear_pending_registration,
 )
 from apps.paycam_auth.utils import send_email_otp
 from apps.payments.models import Transaction
@@ -94,18 +97,81 @@ class CryptoWalletListView(generics.ListAPIView):
 
 @extend_schema(
     tags=["Mobile App"],
-    summary="Register customer",
-    description="Customer registers with phone number, full name, PIN, and email. Network auto-detected from phone prefix. Wallet created automatically and pre-funded with the sandbox faucet amount.",
+    summary="Register customer (step 1: request OTP)",
+    description="Customer submits phone number, full name, PIN, and email. Network auto-detected from phone prefix. A 6-digit OTP is emailed; the account isn't created until verify-otp confirms it.",
 )
-class AppRegisterView(generics.CreateAPIView):
-    queryset = MobileAppUser.objects.all()
+class AppRegisterView(generics.GenericAPIView):
     serializer_class = AppRegisterSerializer
     permission_classes = [AllowAny]
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        data = serializer.validated_data
+        pin_hash = hash_pin(data["pin"])
+        otp = generate_otp()
+        store_pending_registration(
+            data["phone_number"],
+            otp,
+            {
+                "full_name": data["full_name"],
+                "email": data["email"],
+                "network": data["network"],
+                "pin_hash": pin_hash,
+            },
+        )
+        sent = send_email_otp(data["email"], otp)
+        if not sent:
+            clear_pending_registration(data["phone_number"])
+            return Response(
+                {"error": "otp_delivery_failed", "message": "Failed to deliver OTP to email."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return Response(
+            {
+                "message": "OTP sent to complete registration.",
+                "delivery_method": "email",
+                "expires_in_seconds": 600,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    tags=["Mobile App"],
+    summary="Register customer (step 2: verify OTP)",
+    description="Enter the 6-digit OTP emailed during registration. Creates the account, wallet (pre-funded with the sandbox faucet amount), and crypto wallets, then returns a JWT so the customer is signed in immediately.",
+)
+class AppRegisterVerifyView(generics.GenericAPIView):
+    serializer_class = AppOTPVerifySerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = normalize_phone(serializer.validated_data["phone_number"])
+        otp = serializer.validated_data["otp"]
+        pending = get_pending_registration(phone_number)
+        if not pending:
+            return Response(
+                {"error": "registration_expired", "message": "No pending registration found. Please register again."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if pending["otp"] != otp:
+            return Response(
+                {"error": "invalid_otp", "message": "Invalid or expired OTP."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        clear_pending_registration(phone_number)
+
+        user = MobileAppUser.objects.create(
+            phone_number=phone_number,
+            full_name=pending["full_name"],
+            email=pending["email"],
+            network=pending["network"],
+            pin_hash=pending["pin_hash"],
+        )
         Wallet.objects.create(user=user, network=user.network, balance=settings.FAUCET_AMOUNT)
 
         crypto_wallets = []
@@ -118,9 +184,21 @@ class AppRegisterView(generics.CreateAPIView):
                 )
             )
 
+        now = timezone.now()
+        payload = {
+            "user_id": user.id,
+            "type": "mobile_app",
+            "iat": now,
+            "exp": now + timezone.timedelta(minutes=settings.SESSION_TIMEOUT_MINUTES),
+        }
+        token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+
         return Response(
             {
                 "message": "Account created.",
+                "token": token,
+                "token_type": "Bearer",
+                "expires_in_minutes": settings.SESSION_TIMEOUT_MINUTES,
                 "user": MobileAppUserSerializer(user).data,
                 "wallet": WalletSerializer(user.wallet).data,
                 "crypto_wallets": CryptoWalletSerializer(crypto_wallets, many=True).data,
@@ -132,7 +210,7 @@ class AppRegisterView(generics.CreateAPIView):
 @extend_schema(
     tags=["Mobile App"],
     summary="Customer login (PIN)",
-    description="Enter PIN. If correct, 6-digit OTP sent to email. Account locked after 3 failed PIN attempts.",
+    description="Enter PIN. Returns a JWT directly on success. Account locked after 3 failed PIN attempts.",
 )
 class AppLoginView(generics.GenericAPIView):
     serializer_class = AppLoginSerializer
@@ -170,19 +248,20 @@ class AppLoginView(generics.GenericAPIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         clear_pin_attempts(user.id)
-        otp = generate_otp()
-        store_login_otp(user.id, otp)
-        sent = send_email_otp(user.email, otp)
-        if not sent:
-            return Response(
-                {"error": "otp_delivery_failed", "message": "Failed to deliver OTP to email."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        now = timezone.now()
+        payload = {
+            "user_id": user.id,
+            "type": "mobile_app",
+            "iat": now,
+            "exp": now + timezone.timedelta(minutes=settings.SESSION_TIMEOUT_MINUTES),
+        }
+        token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
         return Response(
             {
-                "message": "OTP sent.",
-                "delivery_method": "email",
-                "expires_in_seconds": 300,
+                "token": token,
+                "token_type": "Bearer",
+                "expires_in_minutes": settings.SESSION_TIMEOUT_MINUTES,
+                "user": MobileAppUserSerializer(user).data,
             },
             status=status.HTTP_200_OK,
         )

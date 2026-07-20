@@ -10,6 +10,8 @@ type DocsState = {
   setLanguage: (lang: DocsLanguage) => void;
   apiKey: string;
   setApiKey: (key: string) => void;
+  activeSection: string;
+  setActiveSection: (id: string) => void;
 };
 
 const DocsContext = createContext<DocsState | null>(null);
@@ -17,6 +19,7 @@ const DocsContext = createContext<DocsState | null>(null);
 export function DocsProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<DocsLanguage>("javascript");
   const [apiKey, setApiKeyState] = useState("");
+  const [activeSection, setActiveSection] = useState("introduction");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage on mount
@@ -29,7 +32,9 @@ export function DocsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <DocsContext.Provider value={{ language, setLanguage, apiKey, setApiKey }}>
+    <DocsContext.Provider
+      value={{ language, setLanguage, apiKey, setApiKey, activeSection, setActiveSection }}
+    >
       {children}
     </DocsContext.Provider>
   );

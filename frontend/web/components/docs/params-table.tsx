@@ -1,12 +1,3 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
 export type Param = {
   name: string;
   type: string;
@@ -16,26 +7,19 @@ export type Param = {
 
 export function ParamsTable({ params }: { params: Param[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Parameter</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Description</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {params.map((p) => (
-          <TableRow key={p.name}>
-            <TableCell className="font-mono text-xs">
-              {p.name}
-              {p.required && <span className="ml-1 text-destructive">*</span>}
-            </TableCell>
-            <TableCell className="text-xs text-muted-foreground">{p.type}</TableCell>
-            <TableCell className="text-sm">{p.description}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="divide-y divide-border rounded-lg border border-border">
+      {params.map((p) => (
+        <div key={p.name} className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-4 py-3">
+          <code className="text-sm font-semibold">{p.name}</code>
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+            {p.type}
+          </span>
+          {p.required && (
+            <span className="text-xs font-medium text-destructive">required</span>
+          )}
+          <p className="w-full text-sm text-muted-foreground">{p.description}</p>
+        </div>
+      ))}
+    </div>
   );
 }

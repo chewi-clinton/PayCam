@@ -57,7 +57,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text('Session Timeout', style: TextStyle(fontWeight: FontWeight.w700)),
-                        Text('Fixed at 5 minutes — PIN + OTP required to re-enter, no exceptions.'),
+                        Text('Stays signed in for 30 minutes. Face ID/Touch ID or your PIN unlocks it instantly; once it fully expires, PIN sign-in is all that\'s needed again.'),
                       ],
                     ),
                   ),

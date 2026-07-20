@@ -4,6 +4,8 @@ import '../models/models.dart';
 /// [MockPayCamApi], so [AppState] can swap implementations for demo
 /// mode without any screen code knowing the difference.
 abstract class PayCamApiBase {
+  /// Step 1 of registration: submits the form, backend emails an OTP.
+  /// No account exists yet — call [verifyRegistrationOtp] to create it.
   Future<Map<String, dynamic>> register({
     required String phoneNumber,
     required String fullName,
@@ -11,9 +13,13 @@ abstract class PayCamApiBase {
     required String email,
   });
 
+  /// Returns {token, user} directly — PIN alone is sufficient, no OTP.
   Future<Map<String, dynamic>> login({required String phoneNumber, required String pin});
 
-  Future<Map<String, dynamic>> verifyOtp({required String phoneNumber, required String otp});
+  /// Step 2 of registration: creates the account and returns
+  /// {token, user, wallet, crypto_wallets} so the customer is signed
+  /// in immediately, no separate login step needed.
+  Future<Map<String, dynamic>> verifyRegistrationOtp({required String phoneNumber, required String otp});
 
   Future<List<PendingPayment>> pendingPayments();
 

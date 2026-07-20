@@ -71,7 +71,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       _error = null;
     });
     try {
-      final res = await widget.appState.api.verifyOtp(
+      final res = await widget.appState.api.verifyRegistrationOtp(
         phoneNumber: widget.phoneNumber,
         otp: code,
       );
@@ -80,7 +80,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       await widget.appState.loadProfile();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => MainShell(appState: widget.appState)),
+        MaterialPageRoute(builder: (_) => MainShell(appState: widget.appState, skipInitialLock: true)),
         (route) => false,
       );
     } on ApiException catch (e) {
@@ -153,7 +153,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       onPressed: () {
                         _startTimer();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please log in again to resend the code.')),
+                          const SnackBar(content: Text('Please register again to resend the code.')),
                         );
                       },
                       child: Text(Strings.resendCode),

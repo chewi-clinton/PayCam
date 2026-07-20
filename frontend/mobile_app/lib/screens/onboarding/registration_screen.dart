@@ -5,6 +5,7 @@ import '../../state/app_state.dart';
 import '../../services/api_client.dart';
 import '../../widgets/common.dart';
 import 'login_screen.dart';
+import 'otp_verification_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key, required this.appState});
@@ -55,21 +56,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
     setState(() => _loading = true);
     try {
-      await widget.appState.api.register(
-        phoneNumber: _normalizePhone(_phoneCtrl.text),
+      final phone = _normalizePhone(_phoneCtrl.text);
+      final res = await widget.appState.api.register(
+        phoneNumber: phone,
         fullName: _nameCtrl.text.trim(),
         pin: _pinCtrl.text,
         email: _emailCtrl.text.trim(),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created. Please log in.')),
-      );
-      Navigator.of(context).pushReplacement(
+      final deliveryMethod = res['delivery_method'] as String? ?? 'email';
+      Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => LoginScreen(
+          builder: (_) => OtpVerificationScreen(
             appState: widget.appState,
-            prefillPhone: _normalizePhone(_phoneCtrl.text),
+            phoneNumber: phone,
+            deliveryMethod: deliveryMethod,
           ),
         ),
       );

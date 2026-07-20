@@ -5,8 +5,8 @@ import '../../state/app_state.dart';
 import '../../services/api_client.dart';
 import '../../widgets/common.dart';
 import 'registration_screen.dart';
-import 'otp_verification_screen.dart';
 import 'forgot_pin_screen.dart';
+import '../main/main_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.appState, this.prefillPhone});
@@ -60,16 +60,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final res = await widget.appState.api.login(phoneNumber: phone, pin: _pinCtrl.text);
+      final token = res['token'] as String;
+      await widget.appState.setSession(token: token, phoneNumber: phone);
+      await widget.appState.loadProfile();
       if (!mounted) return;
-      final deliveryMethod = res['delivery_method'] as String? ?? 'email';
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OtpVerificationScreen(
-            appState: widget.appState,
-            phoneNumber: phone,
-            deliveryMethod: deliveryMethod,
-          ),
-        ),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => MainShell(appState: widget.appState, skipInitialLock: true)),
+        (route) => false,
       );
     } on ApiException catch (e) {
       setState(() => _error = e.message);

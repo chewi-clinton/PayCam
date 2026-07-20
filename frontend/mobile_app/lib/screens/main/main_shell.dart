@@ -3,6 +3,8 @@ import 'package:local_auth/local_auth.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/strings.dart';
 import '../../state/app_state.dart';
+import '../../services/api_client.dart';
+import '../../widgets/common.dart';
 import 'home_dashboard_screen.dart';
 import 'wallet_screen.dart';
 import 'qr_scanner_screen.dart';
@@ -10,8 +12,16 @@ import 'transaction_history_screen.dart';
 import 'profile_screen.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key, required this.appState});
+  const MainShell({super.key, required this.appState, this.skipInitialLock = false});
   final AppState appState;
+
+  /// Set by the login/registration screens right after the user
+  /// interactively authenticated, so they aren't immediately asked to
+  /// unlock again. Cold starts that resume a persisted session (via
+  /// [SplashScreen]) leave this false, so *some* unlock — Face ID
+  /// when enabled, PIN otherwise — is always required before the
+  /// wallet is shown, the same as reopening a banking app.
+  final bool skipInitialLock;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -20,7 +30,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   int _index = 0;
   final _localAuth = LocalAuthentication();
-  bool _locked = false;
+  late bool _locked = !widget.skipInitialLock;
   bool _authenticating = false;
 
   void goTo(int index) => setState(() => _index = index);
@@ -29,8 +39,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (widget.appState.settings.biometricLock) {
-      _locked = true;
+    if (_locked) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _tryUnlock());
     }
   }
@@ -43,29 +52,51 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused && widget.appState.settings.biometricLock) {
+    if (state == AppLifecycleState.paused) {
       setState(() => _locked = true);
     }
   }
 
   Future<void> _tryUnlock() async {
     if (_authenticating) return;
+    // Biometrics off: don't fire a Face ID prompt at all — the lock
+    // screen shows the PIN entry as the sole option.
+    if (!widget.appState.settings.biometricLock) return;
     _authenticating = true;
     try {
       final supported = await _localAuth.isDeviceSupported();
-      if (!supported) {
-        setState(() => _locked = false);
-        return;
-      }
+      if (!supported) return;
       final ok = await _localAuth.authenticate(
         localizedReason: 'Unlock PayCam',
         options: const AuthenticationOptions(stickyAuth: true),
       );
       if (ok && mounted) setState(() => _locked = false);
     } catch (_) {
-      // Leave locked; user can retry via the button on the lock screen.
+      // Leave locked; user can retry Face ID, or fall back to PIN.
     } finally {
       _authenticating = false;
+    }
+  }
+
+  Future<void> _unlockWithPin() async {
+    final pin = await showDialog<String>(
+      context: context,
+      builder: (_) => _PinUnlockDialog(),
+    );
+    if (pin == null || pin.length != 4) return;
+    final phone = widget.appState.phoneNumber;
+    if (phone == null) return;
+    try {
+      final res = await widget.appState.api.login(phoneNumber: phone, pin: pin);
+      final token = res['token'] as String;
+      await widget.appState.setSession(token: token, phoneNumber: phone);
+      if (mounted) setState(() => _locked = false);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(Strings.connectionError)));
     }
   }
 
@@ -95,15 +126,26 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
           body: body,
           bottomNavigationBar: _BottomNav(index: _index, onTap: goTo),
         ),
-        if (_locked) _LockScreen(onUnlock: _tryUnlock),
+        if (_locked)
+          _LockScreen(
+            onUnlock: _tryUnlock,
+            onUsePin: _unlockWithPin,
+            biometricEnabled: widget.appState.settings.biometricLock,
+          ),
       ],
     );
   }
 }
 
 class _LockScreen extends StatelessWidget {
-  const _LockScreen({required this.onUnlock});
+  const _LockScreen({
+    required this.onUnlock,
+    required this.onUsePin,
+    required this.biometricEnabled,
+  });
   final VoidCallback onUnlock;
+  final VoidCallback onUsePin;
+  final bool biometricEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -128,18 +170,74 @@ class _LockScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               Text('PayCam Locked', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: AppSpacing.sm),
-              Text('Unlock with Face ID / Touch ID to continue',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: AppSpacing.xl),
-              ElevatedButton.icon(
-                onPressed: onUnlock,
-                icon: const Icon(Icons.fingerprint),
-                label: const Text('Unlock'),
+              Text(
+                biometricEnabled
+                    ? 'Unlock with Face ID / Touch ID to continue'
+                    : 'Enter your PIN to continue',
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
+              const SizedBox(height: AppSpacing.xl),
+              if (biometricEnabled) ...[
+                ElevatedButton.icon(
+                  onPressed: onUnlock,
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('Unlock'),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: onUsePin,
+                  child: const Text('Use PIN instead'),
+                ),
+              ] else
+                ElevatedButton.icon(
+                  onPressed: onUsePin,
+                  icon: const Icon(Icons.password_rounded),
+                  label: const Text('Enter PIN'),
+                ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PinUnlockDialog extends StatefulWidget {
+  @override
+  State<_PinUnlockDialog> createState() => _PinUnlockDialogState();
+}
+
+class _PinUnlockDialogState extends State<_PinUnlockDialog> {
+  final _pinCtrl = TextEditingController();
+  final _pinFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _pinCtrl.dispose();
+    _pinFocus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Enter your PIN'),
+      content: SizedBox(
+        width: double.minPositive,
+        child: PinDotsField(
+          controller: _pinCtrl,
+          focusNode: _pinFocus,
+          length: 4,
+          autofocus: true,
+          onCompleted: (pin) => Navigator.of(context).pop(pin),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
     );
   }
 }

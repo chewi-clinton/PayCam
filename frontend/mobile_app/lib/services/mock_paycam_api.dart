@@ -118,19 +118,19 @@ class MockPayCamApi implements PayCamApiBase {
   }) async {
     await Future.delayed(_latency);
     _user = AppUser(id: 1, phoneNumber: phoneNumber, fullName: fullName, network: 'MTN', isActive: true);
-    return {'message': 'Account created.'};
+    return {'message': 'OTP sent to complete registration.', 'delivery_method': 'email', 'expires_in_seconds': 600};
   }
 
   @override
   Future<Map<String, dynamic>> login({required String phoneNumber, required String pin}) async {
     await Future.delayed(_latency);
-    return {'message': 'OTP sent.', 'delivery_method': 'email', 'expires_in_seconds': 300};
+    return {'token': 'demo-token', 'token_type': 'Bearer', 'expires_in_minutes': 30};
   }
 
   @override
-  Future<Map<String, dynamic>> verifyOtp({required String phoneNumber, required String otp}) async {
+  Future<Map<String, dynamic>> verifyRegistrationOtp({required String phoneNumber, required String otp}) async {
     await Future.delayed(_latency);
-    return {'token': 'demo-token', 'token_type': 'Bearer', 'expires_in_minutes': 5};
+    return {'token': 'demo-token', 'token_type': 'Bearer', 'expires_in_minutes': 30};
   }
 
   @override

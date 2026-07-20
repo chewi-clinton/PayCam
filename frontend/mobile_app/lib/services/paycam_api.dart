@@ -29,7 +29,7 @@ class PayCamApi implements PayCamApiBase {
     return res as Map<String, dynamic>;
   }
 
-  /// Returns delivery info; on success backend has sent an OTP.
+  /// Returns {token, user} directly on a correct PIN.
   @override
   Future<Map<String, dynamic>> login({
     required String phoneNumber,
@@ -43,14 +43,14 @@ class PayCamApi implements PayCamApiBase {
     return res as Map<String, dynamic>;
   }
 
-  /// Returns {token, user} on success.
+  /// Returns {token, user, wallet, crypto_wallets} on success.
   @override
-  Future<Map<String, dynamic>> verifyOtp({
+  Future<Map<String, dynamic>> verifyRegistrationOtp({
     required String phoneNumber,
     required String otp,
   }) async {
     final res = await _client.post(
-      '/app/verify-otp/',
+      '/app/register/verify-otp/',
       auth: false,
       body: {'phone_number': phoneNumber, 'otp': otp},
     );

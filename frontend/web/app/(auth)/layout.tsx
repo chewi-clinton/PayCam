@@ -13,7 +13,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
       <div className="relative hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
-        <Image src="/brand/logo-badge-white.png" alt="PayCam" width={40} height={40} className="rounded-md" />
+        <Image
+          src="/brand/thumbnail.png"
+          alt="PayCam"
+          width={800}
+          height={405}
+          className="w-full max-w-md rounded-xl shadow-lg"
+        />
         <div className="space-y-4">
           <h2 className="text-3xl font-semibold leading-tight">
             Accept mobile money, cards, and crypto payments across Cameroon.

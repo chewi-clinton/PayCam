@@ -13,21 +13,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
       <div className="relative hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
-        <Image
-          src="/brand/thumbnail.png"
-          alt="PayCam"
-          width={800}
-          height={405}
-          className="w-full max-w-md rounded-xl shadow-lg"
-        />
-        <div className="space-y-4">
-          <h2 className="text-3xl font-semibold leading-tight">
-            Accept mobile money, cards, and crypto payments across Cameroon.
-          </h2>
-          <p className="text-primary-foreground/80">
-            One dashboard for MTN MoMo, Orange Money, card payments, and testnet crypto —
-            with live transaction updates and webhook delivery you can actually trust.
-          </p>
+        <div />
+        <div className="space-y-6">
+          <Image
+            src="/brand/thumbnail.png"
+            alt="PayCam"
+            width={800}
+            height={405}
+            className="w-full max-w-md rounded-xl shadow-lg"
+          />
+          <div className="space-y-4">
+            <h2 className="text-3xl font-semibold leading-tight">
+              Accept mobile money, cards, and crypto payments across Cameroon.
+            </h2>
+            <p className="text-primary-foreground/80">
+              One dashboard for MTN MoMo, Orange Money, card payments, and testnet crypto —
+              with live transaction updates and webhook delivery you can actually trust.
+            </p>
+          </div>
         </div>
         <p className="text-sm text-primary-foreground/70">
           © {new Date().getFullYear()} PayCam

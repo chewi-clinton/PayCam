@@ -4,8 +4,9 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.common.test_utils import FakeRedisMixin, make_merchant, make_api_key, merchant_jwt
+from apps.common.test_utils import FakeRedisMixin, make_merchant, make_api_key, make_customer, merchant_jwt
 from apps.paycam_auth.models import User
+from apps.payments.models import Transaction
 from .models import AdminInvite
 
 MERCHANTS_URL = "/api/v1/admin/merchants/"
@@ -271,3 +272,70 @@ class AdminInviteAcceptTests(FakeRedisMixin, TestCase):
             format="json",
         )
         self.assertEqual(login_response.status_code, 200)
+
+
+STATS_URL = "/api/v1/admin/stats/"
+
+
+class PlatformStatsTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    def _make_txn(self, merchant, api_key, customer, txn_status, amount="1000.00", suffix="A"):
+        return Transaction.objects.create(
+            reference=f"TXN_20260101_STATS{suffix}",
+            merchant=merchant,
+            api_key=api_key,
+            customer_user=customer,
+            amount=amount,
+            currency="XAF",
+            phone_number=customer.phone_number,
+            network="MTN",
+            payment_method="mtn_momo",
+            status=txn_status,
+            expires_at=timezone.now() + timezone.timedelta(minutes=15),
+        )
+
+    def test_merchant_rejected(self):
+        merchant = make_merchant()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(merchant)}")
+        response = self.client.get(STATS_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_empty_stats(self):
+        response = self.client.get(STATS_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["merchant_count"], 0)
+        self.assertEqual(response.data["transaction_count"], 0)
+        self.assertEqual(response.data["gross_volume_xaf"], "0.00")
+
+    def test_aggregates_across_all_merchants(self):
+        customer = make_customer()
+        m1 = make_merchant(email="stats-m1@example.com")
+        _, key1 = make_api_key(m1)
+        m2 = make_merchant(email="stats-m2@example.com")
+        _, key2 = make_api_key(m2)
+        m2.is_suspended = True
+        m2.save(update_fields=["is_suspended"])
+
+        self._make_txn(m1, key1, customer, "success", amount="1000.00", suffix="1")
+        self._make_txn(m2, key2, customer, "success", amount="2000.00", suffix="2")
+        self._make_txn(m1, key1, customer, "pending", amount="500.00", suffix="3")
+
+        response = self.client.get(STATS_URL)
+        self.assertEqual(response.status_code, 200)
+        data = response.data
+        self.assertEqual(data["merchant_count"], 2)
+        self.assertEqual(data["suspended_merchant_count"], 1)
+        self.assertEqual(data["transaction_count"], 3)
+        self.assertEqual(data["success_count"], 2)
+        self.assertEqual(data["pending_count"], 1)
+        self.assertEqual(data["gross_volume_xaf"], "3000.00")
+
+    def test_requires_authentication(self):
+        client = APIClient()
+        response = client.get(STATS_URL)
+        self.assertIn(response.status_code, (401, 403))

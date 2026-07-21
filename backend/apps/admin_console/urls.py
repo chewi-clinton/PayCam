@@ -8,9 +8,11 @@ from .views import (
     APIKeyRevokeView,
     AdminInviteCreateView,
     AdminInviteAcceptView,
+    PlatformStatsView,
 )
 
 urlpatterns = [
+    path("stats/", PlatformStatsView.as_view(), name="admin-platform-stats"),
     path("merchants/", MerchantListView.as_view(), name="admin-merchant-list"),
     path("merchants/<int:pk>/", MerchantDetailView.as_view(), name="admin-merchant-detail"),
     path(

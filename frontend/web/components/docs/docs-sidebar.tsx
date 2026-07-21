@@ -5,9 +5,11 @@ import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOCS_NAV } from "@/lib/docs-nav";
 import { useDocs } from "@/lib/docs-context";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function DocsSidebar() {
   const { activeSection, setActiveSection } = useDocs();
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -15,9 +17,9 @@ export function DocsSidebar() {
     const q = query.toLowerCase();
     return DOCS_NAV.map((g) => ({
       ...g,
-      items: g.items.filter((item) => item.label.toLowerCase().includes(q)),
+      items: g.items.filter((item) => t(item.labelKey).toLowerCase().includes(q)),
     })).filter((g) => g.items.length > 0);
-  }, [query]);
+  }, [query, t]);
 
   return (
     <div className="flex h-full flex-col">
@@ -26,15 +28,15 @@ export function DocsSidebar() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search docs..."
+          placeholder={t("docs.sidebar.searchPlaceholder")}
           className="h-9 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>
       <nav className="flex-1 space-y-5 overflow-y-auto px-1 pb-8">
         {filtered.map((g) => (
-          <div key={g.group}>
+          <div key={g.groupKey}>
             <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {g.group}
+              {t(g.groupKey)}
             </p>
             <div className="space-y-0.5">
               {g.items.map((item) => (
@@ -49,14 +51,14 @@ export function DocsSidebar() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </a>
               ))}
             </div>
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="px-3 text-sm text-muted-foreground">No results.</p>
+          <p className="px-3 text-sm text-muted-foreground">{t("docs.sidebar.noResults")}</p>
         )}
       </nav>
     </div>

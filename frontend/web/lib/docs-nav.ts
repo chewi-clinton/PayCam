@@ -1,34 +1,34 @@
-export type DocsNavItem = { id: string; label: string };
-export type DocsNavGroup = { group: string; items: DocsNavItem[] };
+export type DocsNavItem = { id: string; labelKey: string };
+export type DocsNavGroup = { groupKey: string; items: DocsNavItem[] };
 
 export const DOCS_NAV: DocsNavGroup[] = [
   {
-    group: "Get Started",
+    groupKey: "docs.nav.getStarted",
     items: [
-      { id: "introduction", label: "Introduction" },
-      { id: "authentication", label: "Authentication" },
+      { id: "introduction", labelKey: "docs.nav.introduction" },
+      { id: "authentication", labelKey: "docs.nav.authentication" },
     ],
   },
   {
-    group: "Core Concepts",
+    groupKey: "docs.nav.coreConcepts",
     items: [
-      { id: "errors", label: "Errors" },
-      { id: "security", label: "Security" },
-      { id: "rate-limits", label: "Rate limits" },
+      { id: "errors", labelKey: "docs.nav.errors" },
+      { id: "security", labelKey: "docs.nav.security" },
+      { id: "rate-limits", labelKey: "docs.nav.rateLimits" },
     ],
   },
   {
-    group: "API Reference",
+    groupKey: "docs.nav.apiReference",
     items: [
-      { id: "mobile-money", label: "Mobile Money payments" },
-      { id: "card", label: "Card payments" },
-      { id: "crypto", label: "Crypto payments" },
-      { id: "retrieve", label: "Retrieve & list payments" },
+      { id: "mobile-money", labelKey: "docs.nav.mobileMoney" },
+      { id: "card", labelKey: "docs.nav.card" },
+      { id: "crypto", labelKey: "docs.nav.crypto" },
+      { id: "retrieve", labelKey: "docs.nav.retrieve" },
     ],
   },
   {
-    group: "Webhooks",
-    items: [{ id: "webhooks", label: "Webhooks" }],
+    groupKey: "docs.nav.webhooksGroup",
+    items: [{ id: "webhooks", labelKey: "docs.nav.webhooks" }],
   },
 ];
 

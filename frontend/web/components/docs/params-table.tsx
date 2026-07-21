@@ -1,3 +1,7 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/language-context";
+
 export type Param = {
   name: string;
   type: string;
@@ -6,6 +10,7 @@ export type Param = {
 };
 
 export function ParamsTable({ params }: { params: Param[] }) {
+  const { t } = useLanguage();
   return (
     <div className="divide-y divide-border rounded-lg border border-border">
       {params.map((p) => (
@@ -15,7 +20,7 @@ export function ParamsTable({ params }: { params: Param[] }) {
             {p.type}
           </span>
           {p.required && (
-            <span className="text-xs font-medium text-destructive">required</span>
+            <span className="text-xs font-medium text-destructive">{t("docs.paramsTable.required")}</span>
           )}
           <p className="w-full text-sm text-muted-foreground">{p.description}</p>
         </div>

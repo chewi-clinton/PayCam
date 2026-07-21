@@ -193,3 +193,35 @@ def encrypt_totp_secret(secret):
 
 def decrypt_totp_secret(encrypted):
     return get_fernet().decrypt(encrypted.encode()).decode()
+
+
+# ========== Logo storage (MinIO / S3-compatible) ==========
+
+import uuid
+import boto3
+from botocore.client import Config as BotoConfig
+
+_s3_client = None
+
+def get_s3_client():
+    global _s3_client
+    if _s3_client is None:
+        _s3_client = boto3.client(
+            "s3",
+            endpoint_url=settings.MINIO_ENDPOINT_URL,
+            aws_access_key_id=settings.MINIO_ACCESS_KEY,
+            aws_secret_access_key=settings.MINIO_SECRET_KEY,
+            config=BotoConfig(signature_version="s3v4"),
+        )
+    return _s3_client
+
+
+def upload_merchant_logo(merchant_id, file_obj, content_type, extension):
+    key = f"{merchant_id}/logo-{uuid.uuid4().hex[:8]}.{extension}"
+    get_s3_client().put_object(
+        Bucket=settings.MINIO_LOGOS_BUCKET,
+        Key=key,
+        Body=file_obj,
+        ContentType=content_type,
+    )
+    return f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_LOGOS_BUCKET}/{key}"

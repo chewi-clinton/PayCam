@@ -207,3 +207,52 @@ class ForgotPasswordTests(FakeRedisMixin, TestCase):
         self.assertEqual(response.status_code, 400)
         self.merchant.refresh_from_db()
         self.assertTrue(self.merchant.check_password("Str0ngPass!123"))
+
+
+LOGO_URL = "/api/v1/auth/profile/logo/"
+
+
+class LogoUploadTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.merchant = make_merchant()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.merchant)}")
+
+    def _image_file(self, name="logo.png", content_type="image/png", size=100):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return SimpleUploadedFile(name, b"\x89PNG\r\n" + b"0" * size, content_type=content_type)
+
+    @patch("apps.paycam_auth.views.upload_merchant_logo", return_value="https://paycam-storage.zardocard.com/merchant-logos/1/logo-abcd1234.png")
+    def test_upload_sets_logo_url(self, mock_upload):
+        response = self.client.post(LOGO_URL, {"logo": self._image_file()}, format="multipart")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["logo_url"], "https://paycam-storage.zardocard.com/merchant-logos/1/logo-abcd1234.png"
+        )
+        self.merchant.refresh_from_db()
+        self.assertEqual(
+            self.merchant.logo_url, "https://paycam-storage.zardocard.com/merchant-logos/1/logo-abcd1234.png"
+        )
+        mock_upload.assert_called_once()
+
+    def test_upload_rejects_non_image(self):
+        response = self.client.post(
+            LOGO_URL, {"logo": self._image_file(name="logo.txt", content_type="text/plain")}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_upload_rejects_oversized_file(self):
+        response = self.client.post(
+            LOGO_URL, {"logo": self._image_file(size=3 * 1024 * 1024)}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_upload_requires_file(self):
+        response = self.client.post(LOGO_URL, {}, format="multipart")
+        self.assertEqual(response.status_code, 400)
+
+    def test_unauthenticated_rejected(self):
+        self.client.credentials()
+        response = self.client.post(LOGO_URL, {"logo": self._image_file()}, format="multipart")
+        self.assertIn(response.status_code, (401, 403))

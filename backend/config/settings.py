@@ -173,6 +173,12 @@ INFURA_API_KEY = os.getenv("INFURA_API_KEY", "")
 
 EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
+MINIO_ENDPOINT_URL = os.getenv("MINIO_ENDPOINT_URL", "http://paycam-minio-sdqwur-minio-1:9000")
+MINIO_PUBLIC_URL = os.getenv("MINIO_PUBLIC_URL", "https://paycam-storage.zardocard.com")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "")
+MINIO_LOGOS_BUCKET = os.getenv("MINIO_LOGOS_BUCKET", "merchant-logos")
+
 PAYMENT_EXPIRY_MINUTES = 15
 SESSION_TIMEOUT_MINUTES = 30
 PIN_LOCKOUT_MINUTES = 10

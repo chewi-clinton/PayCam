@@ -40,6 +40,7 @@ from .utils import (
     store_password_reset_otp,
     verify_password_reset_otp,
     send_password_reset_otp,
+    upload_merchant_logo,
 )
 
 
@@ -320,6 +321,43 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         super().update(request, *args, **kwargs)
         return Response(UserSerializer(request.user).data)
+
+
+ALLOWED_LOGO_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+}
+MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024
+
+
+class LogoUploadView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        logo = request.FILES.get("logo")
+        if not logo:
+            return Response(
+                {"error": "invalid_request", "code": "PAY_CAM_4000", "message": "No file uploaded."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if logo.content_type not in ALLOWED_LOGO_TYPES:
+            return Response(
+                {"error": "invalid_request", "code": "PAY_CAM_4000", "message": "Logo must be a JPEG, PNG, WEBP, or GIF image."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if logo.size > MAX_LOGO_SIZE_BYTES:
+            return Response(
+                {"error": "invalid_request", "code": "PAY_CAM_4000", "message": "Logo must be 2MB or smaller."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        extension = ALLOWED_LOGO_TYPES[logo.content_type]
+        logo_url = upload_merchant_logo(request.user.id, logo, logo.content_type, extension)
+        request.user.logo_url = logo_url
+        request.user.save(update_fields=["logo_url"])
+        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 
 class ForgotPasswordView(generics.GenericAPIView):

@@ -9,6 +9,7 @@ from .views import (
     APIKeyCreateView,
     LogoutView,
     ProfileView,
+    LogoUploadView,
     ForgotPasswordView,
     ResetPasswordView,
 )
@@ -25,4 +26,5 @@ urlpatterns = [
     path("api-keys/create/", APIKeyCreateView.as_view(), name="api-key-create"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path("profile/logo/", LogoUploadView.as_view(), name="profile-logo"),
 ]

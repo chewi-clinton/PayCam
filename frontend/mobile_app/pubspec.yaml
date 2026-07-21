@@ -1,0 +1,45 @@
+name: paycam
+description: "PayCam — the African payment gateway customer wallet."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.0
+  lottie: ^3.1.0
+  google_fonts: ^6.2.0
+  shared_preferences: ^2.2.0
+  mobile_scanner: ^7.0.0
+  intl: ^0.20.0
+  qr_flutter: ^4.1.0
+  share_plus: ^13.2.1
+  url_launcher: ^6.3.2
+  image_picker: ^1.2.3
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^10.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/lottie/
+    - assets/images/
+
+flutter_launcher_icons:
+  image_path: "assets/images/logo_icon.png"
+  ios: true
+  android: true
+  remove_alpha_ios: true

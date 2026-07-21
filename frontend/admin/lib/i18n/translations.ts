@@ -13,6 +13,9 @@ export const translations = {
       next: "Next",
     },
     auth: {
+      brandHeadline: "Manage every PayCam merchant from one place.",
+      brandBody:
+        "Search merchant accounts, review their transactions, revoke a compromised API key, or suspend an account — all in a few clicks.",
       copyright: "© {year} PayCam",
       login: {
         title: "Admin log in",
@@ -121,6 +124,9 @@ export const translations = {
       next: "Suivant",
     },
     auth: {
+      brandHeadline: "Gérez tous les marchands PayCam depuis un seul endroit.",
+      brandBody:
+        "Recherchez des comptes marchands, examinez leurs transactions, révoquez une clé API compromise ou suspendez un compte — en quelques clics.",
       copyright: "© {year} PayCam",
       login: {
         title: "Connexion admin",

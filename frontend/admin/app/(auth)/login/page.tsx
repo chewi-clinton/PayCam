@@ -39,7 +39,7 @@ function LoginForm() {
         setError(t("auth.login.notAdmin"));
         return;
       }
-      router.push("/merchants");
+      router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.message === "2FA code required.") {

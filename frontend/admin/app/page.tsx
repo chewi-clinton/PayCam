@@ -8,7 +8,7 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(getToken() ? "/merchants" : "/login");
+    router.replace(getToken() ? "/dashboard" : "/login");
   }, [router]);
 
   return null;

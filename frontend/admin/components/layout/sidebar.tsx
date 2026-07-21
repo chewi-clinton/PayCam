@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Users, UserPlus } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const NAV_ITEMS = [
+  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/merchants", key: "merchants", icon: Users },
   { href: "/invites", key: "invites", icon: UserPlus },
 ] as const;

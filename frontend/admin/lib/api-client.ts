@@ -118,6 +118,18 @@ export type Transaction = {
   updated_at: string;
 };
 
+export type PlatformStats = {
+  merchant_count: number;
+  suspended_merchant_count: number;
+  gross_volume_xaf: string;
+  transaction_count: number;
+  success_count: number;
+  pending_count: number;
+  failed_count: number;
+  success_rate: number;
+  last_7_days: { date: string; volume: string; count: number }[];
+};
+
 type Paginated<T> = { count: number; next: string | null; previous: string | null; results: T[] };
 
 // ---- API ----
@@ -133,6 +145,8 @@ export const api = {
   logout: () => request<{ message: string }>("/auth/logout/", { method: "POST" }),
 
   profile: () => request<Admin>("/auth/profile/"),
+
+  platformStats: () => request<PlatformStats>("/admin/stats/"),
 
   listMerchants: (params?: { search?: string; limit?: number; offset?: number }) => {
     const qs = new URLSearchParams();

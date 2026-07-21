@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     nav: {
+      dashboard: "Dashboard",
       merchants: "Merchants",
       invites: "Invites",
     },
@@ -12,6 +13,19 @@ export const translations = {
       cancel: "Cancel",
       previous: "Previous",
       next: "Next",
+    },
+    dashboard: {
+      stats: {
+        merchants: "Merchants",
+        suspendedMerchants: "Suspended",
+        grossVolume: "Gross volume",
+        transactions: "Transactions",
+        successRate: "Success rate",
+      },
+      volumeChart: {
+        title: "Gross volume — last 7 days",
+        empty: "No successful transactions yet.",
+      },
     },
     invites: {
       title: "Invite an admin",
@@ -139,6 +153,7 @@ export const translations = {
   },
   fr: {
     nav: {
+      dashboard: "Tableau de bord",
       merchants: "Marchands",
       invites: "Invitations",
     },
@@ -150,6 +165,19 @@ export const translations = {
       cancel: "Annuler",
       previous: "Précédent",
       next: "Suivant",
+    },
+    dashboard: {
+      stats: {
+        merchants: "Marchands",
+        suspendedMerchants: "Suspendus",
+        grossVolume: "Volume brut",
+        transactions: "Transactions",
+        successRate: "Taux de réussite",
+      },
+      volumeChart: {
+        title: "Volume brut — 7 derniers jours",
+        empty: "Aucune transaction réussie pour le moment.",
+      },
     },
     invites: {
       title: "Inviter un administrateur",

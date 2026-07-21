@@ -44,7 +44,7 @@ function AcceptInviteForm() {
   const handleContinue = () => {
     if (!result) return;
     setToken(result.access_token);
-    router.push("/merchants");
+    router.push("/dashboard");
   };
 
   if (!token) {

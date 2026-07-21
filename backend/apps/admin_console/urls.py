@@ -6,6 +6,8 @@ from .views import (
     MerchantSuspendView,
     MerchantReactivateView,
     APIKeyRevokeView,
+    AdminInviteCreateView,
+    AdminInviteAcceptView,
 )
 
 urlpatterns = [
@@ -23,4 +25,6 @@ urlpatterns = [
         name="admin-merchant-reactivate",
     ),
     path("api-keys/<int:pk>/revoke/", APIKeyRevokeView.as_view(), name="admin-api-key-revoke"),
+    path("invites/", AdminInviteCreateView.as_view(), name="admin-invite-create"),
+    path("invites/accept/", AdminInviteAcceptView.as_view(), name="admin-invite-accept"),
 ]

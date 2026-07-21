@@ -59,3 +59,12 @@ class PasswordResetConfirmRateThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
+
+
+class AdminInviteAcceptRateThrottle(SimpleRateThrottle):
+    """Rate-limits admin invite-acceptance attempts per client IP."""
+
+    scope = "admin_invite_accept"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}

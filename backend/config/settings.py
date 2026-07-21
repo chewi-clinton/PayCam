@@ -135,6 +135,7 @@ REST_FRAMEWORK = {
         "login": "10/min",
         "password_reset": "5/min",
         "password_reset_confirm": "10/min",
+        "admin_invite_accept": "10/min",
     },
 }
 
@@ -147,6 +148,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://paycam-dashboard.zardocard.com",
     "https://paycam-admin.zardocard.com",
 ]
+
+ADMIN_FRONTEND_URL = os.getenv("ADMIN_FRONTEND_URL", "https://paycam-admin.zardocard.com")
 
 CELERY_BROKER_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
 CELERY_RESULT_BACKEND = REDIS_URL

@@ -3,6 +3,15 @@ from apps.paycam_auth.models import User
 from apps.paycam_auth.serializers import APIKeySerializer
 
 
+class AdminInviteCreateSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class AdminInviteAcceptSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True, min_length=8)
+
+
 class MerchantListSerializer(serializers.ModelSerializer):
     api_key_count = serializers.IntegerField(read_only=True)
 

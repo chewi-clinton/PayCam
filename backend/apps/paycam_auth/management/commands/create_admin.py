@@ -24,7 +24,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping."))
             return
 
-        secret = pyotp.random_base32()
+        secret = os.environ.get("ADMIN_TOTP_SECRET") or pyotp.random_base32()
         user, created = User.objects.get_or_create(
             email=email,
             defaults={"first_name": "PayCam", "last_name": "Admin", "role": "admin", "is_active": True},

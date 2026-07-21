@@ -1,0 +1,273 @@
+from unittest.mock import patch
+
+from django.test import TestCase
+from django.utils import timezone
+from rest_framework.test import APIClient
+
+from apps.common.test_utils import FakeRedisMixin, make_merchant, make_api_key, merchant_jwt
+from apps.paycam_auth.models import User
+from .models import AdminInvite
+
+MERCHANTS_URL = "/api/v1/admin/merchants/"
+LOGIN_URL = "/api/v1/auth/login/"
+INVITE_CREATE_URL = "/api/v1/admin/invites/"
+INVITE_ACCEPT_URL = "/api/v1/admin/invites/accept/"
+
+
+def make_admin(email="admin@example.com", password="AdminPass!123"):
+    return User.objects.create_user(
+        email=email,
+        password=password,
+        first_name="Ops",
+        last_name="Admin",
+        role="admin",
+        is_active=True,
+    )
+
+
+class AdminConsolePermissionTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.merchant = make_merchant()
+        self.admin = make_admin()
+        self.client = APIClient()
+
+    def test_merchant_role_rejected_on_every_endpoint(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.merchant)}")
+        for path in [
+            MERCHANTS_URL,
+            f"/api/v1/admin/merchants/{self.merchant.id}/",
+            f"/api/v1/admin/merchants/{self.merchant.id}/transactions/",
+        ]:
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 403, path)
+
+        for path in [
+            f"/api/v1/admin/merchants/{self.merchant.id}/suspend/",
+            f"/api/v1/admin/merchants/{self.merchant.id}/reactivate/",
+        ]:
+            response = self.client.post(path)
+            self.assertEqual(response.status_code, 403, path)
+
+    def test_unauthenticated_rejected(self):
+        response = self.client.get(MERCHANTS_URL)
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_admin_role_allowed(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+        response = self.client.get(MERCHANTS_URL)
+        self.assertEqual(response.status_code, 200)
+
+
+class MerchantListTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    def test_list_only_includes_merchants(self):
+        make_merchant(email="one@example.com")
+        make_merchant(email="two@example.com")
+        response = self.client.get(MERCHANTS_URL)
+        self.assertEqual(response.status_code, 200)
+        emails = {m["email"] for m in response.data["results"]}
+        self.assertEqual(emails, {"one@example.com", "two@example.com"})
+        self.assertNotIn(self.admin.email, emails)
+
+    def test_search_filters_by_email_and_business_name(self):
+        make_merchant(email="jean@example.com")
+        pierre = make_merchant(email="pierre@example.com")
+        pierre.business_name = "Boutique Pierre"
+        pierre.save(update_fields=["business_name"])
+
+        response = self.client.get(MERCHANTS_URL, {"search": "pierre"})
+        self.assertEqual(response.status_code, 200)
+        emails = {m["email"] for m in response.data["results"]}
+        self.assertEqual(emails, {"pierre@example.com"})
+
+    def test_list_includes_api_key_count(self):
+        merchant = make_merchant()
+        make_api_key(merchant)
+        make_api_key(merchant)
+        response = self.client.get(MERCHANTS_URL)
+        row = next(m for m in response.data["results"] if m["email"] == merchant.email)
+        self.assertEqual(row["api_key_count"], 2)
+
+
+class MerchantDetailTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.merchant = make_merchant()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    def test_detail_includes_api_keys(self):
+        make_api_key(self.merchant)
+        response = self.client.get(f"/api/v1/admin/merchants/{self.merchant.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["api_keys"]), 1)
+
+    def test_detail_404_for_unknown_merchant(self):
+        response = self.client.get("/api/v1/admin/merchants/999999/")
+        self.assertEqual(response.status_code, 404)
+
+
+class SuspendReactivateTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.merchant = make_merchant()
+        self.raw_key, self.api_key = make_api_key(self.merchant)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    def test_suspend_blocks_login(self):
+        response = self.client.post(f"/api/v1/admin/merchants/{self.merchant.id}/suspend/")
+        self.assertEqual(response.status_code, 200)
+        self.merchant.refresh_from_db()
+        self.assertTrue(self.merchant.is_suspended)
+
+        anon = APIClient()
+        login_response = anon.post(
+            LOGIN_URL, {"email": self.merchant.email, "password": "Str0ngPass!123"}, format="json"
+        )
+        self.assertEqual(login_response.status_code, 401)
+
+    def test_suspend_blocks_api_key_auth(self):
+        self.client.post(f"/api/v1/admin/merchants/{self.merchant.id}/suspend/")
+        payer = APIClient()
+        payer.credentials(HTTP_AUTHORIZATION=f"Bearer {self.raw_key}")
+        response = payer.get("/api/v1/payments/")
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_suspend_blocks_dashboard_jwt(self):
+        self.client.post(f"/api/v1/admin/merchants/{self.merchant.id}/suspend/")
+        merchant_client = APIClient()
+        merchant_client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.merchant)}")
+        response = merchant_client.get("/api/v1/auth/profile/")
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_reactivate_restores_access(self):
+        self.client.post(f"/api/v1/admin/merchants/{self.merchant.id}/suspend/")
+        response = self.client.post(f"/api/v1/admin/merchants/{self.merchant.id}/reactivate/")
+        self.assertEqual(response.status_code, 200)
+        self.merchant.refresh_from_db()
+        self.assertFalse(self.merchant.is_suspended)
+
+        anon = APIClient()
+        login_response = anon.post(
+            LOGIN_URL, {"email": self.merchant.email, "password": "Str0ngPass!123"}, format="json"
+        )
+        self.assertEqual(login_response.status_code, 200)
+
+
+class APIKeyRevokeTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.merchant = make_merchant()
+        self.raw_key, self.api_key = make_api_key(self.merchant)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    def test_revoke_disables_key(self):
+        response = self.client.post(f"/api/v1/admin/api-keys/{self.api_key.id}/revoke/")
+        self.assertEqual(response.status_code, 200)
+        self.api_key.refresh_from_db()
+        self.assertFalse(self.api_key.is_active)
+
+        payer = APIClient()
+        payer.credentials(HTTP_AUTHORIZATION=f"Bearer {self.raw_key}")
+        payment_response = payer.get("/api/v1/payments/")
+        self.assertIn(payment_response.status_code, (401, 403))
+
+
+class AdminInviteCreateTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(self.admin)}")
+
+    @patch("apps.admin_console.views.send_admin_invite_email", return_value=True)
+    def test_admin_can_create_invite(self, mock_send):
+        response = self.client.post(INVITE_CREATE_URL, {"email": "newadmin@example.com"}, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(AdminInvite.objects.filter(email="newadmin@example.com").exists())
+        mock_send.assert_called_once()
+
+    def test_merchant_cannot_create_invite(self):
+        merchant = make_merchant()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {merchant_jwt(merchant)}")
+        response = self.client.post(INVITE_CREATE_URL, {"email": "newadmin@example.com"}, format="json")
+        self.assertEqual(response.status_code, 403)
+
+    @patch("apps.admin_console.views.send_admin_invite_email", return_value=True)
+    def test_cannot_invite_existing_email(self, mock_send):
+        make_merchant(email="taken@example.com")
+        response = self.client.post(INVITE_CREATE_URL, {"email": "taken@example.com"}, format="json")
+        self.assertEqual(response.status_code, 400)
+        mock_send.assert_not_called()
+
+
+class AdminInviteAcceptTests(FakeRedisMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = make_admin()
+        self.invite = AdminInvite.objects.create(email="newadmin@example.com", invited_by=self.admin)
+        self.client = APIClient()
+
+    def test_accept_creates_admin_with_2fa_enabled(self):
+        response = self.client.post(
+            INVITE_ACCEPT_URL, {"token": self.invite.token, "password": "NewAdminPass!123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("access_token", response.data)
+        self.assertIn("totp_secret", response.data)
+
+        user = User.objects.get(email="newadmin@example.com")
+        self.assertEqual(user.role, "admin")
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.totp_enabled)
+
+        self.invite.refresh_from_db()
+        self.assertIsNotNone(self.invite.accepted_at)
+
+    def test_accept_rejects_unknown_token(self):
+        response = self.client.post(
+            INVITE_ACCEPT_URL, {"token": "not-a-real-token", "password": "NewAdminPass!123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_accept_rejects_already_accepted_invite(self):
+        self.invite.accepted_at = timezone.now()
+        self.invite.save(update_fields=["accepted_at"])
+        response = self.client.post(
+            INVITE_ACCEPT_URL, {"token": self.invite.token, "password": "NewAdminPass!123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_accept_rejects_expired_invite(self):
+        self.invite.expires_at = timezone.now() - timezone.timedelta(hours=1)
+        self.invite.save(update_fields=["expires_at"])
+        response = self.client.post(
+            INVITE_ACCEPT_URL, {"token": self.invite.token, "password": "NewAdminPass!123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_new_admin_can_log_in_after_accepting(self):
+        accept_response = self.client.post(
+            INVITE_ACCEPT_URL, {"token": self.invite.token, "password": "NewAdminPass!123"}, format="json"
+        )
+        secret = accept_response.data["totp_secret"]
+
+        import pyotp
+        code = pyotp.TOTP(secret).now()
+        login_response = self.client.post(
+            LOGIN_URL,
+            {"email": "newadmin@example.com", "password": "NewAdminPass!123", "totp_code": code},
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, 200)

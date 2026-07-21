@@ -1,0 +1,1 @@
+default_app_config = "apps.mobile_app.apps.MobileAppConfig"

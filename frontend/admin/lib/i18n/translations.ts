@@ -2,6 +2,7 @@ export const translations = {
   en: {
     nav: {
       merchants: "Merchants",
+      invites: "Invites",
     },
     common: {
       loading: "Loading…",
@@ -11,6 +12,32 @@ export const translations = {
       cancel: "Cancel",
       previous: "Previous",
       next: "Next",
+    },
+    invites: {
+      title: "Invite an admin",
+      description: "Send an invite to bring a new PayCam staff member onto the admin console.",
+      email: "Email",
+      submit: "Send invite",
+      submitLoading: "Sending…",
+      sentToast: "Invite sent",
+    },
+    acceptInvite: {
+      title: "Set up your admin account",
+      subtitle: "You've been invited to join the PayCam admin console.",
+      password: "Password",
+      passwordHint: "At least 8 characters.",
+      confirmPassword: "Confirm password",
+      passwordMismatch: "Passwords don't match.",
+      submit: "Create account",
+      submitLoading: "Creating account…",
+      totpTitle: "Set up two-factor authentication",
+      setupKeyLabel: "Setup key",
+      totpBody:
+        "Add this key to your authenticator app (Google Authenticator, Authy, 1Password) now — you won't be able to see it again.",
+      totpCopied: "Setup key copied",
+      continueButton: "I've saved it — continue",
+      invalidToken: "This invite link is invalid, expired, or already used.",
+      missingToken: "No invite token found in this link.",
     },
     auth: {
       brandHeadline: "Manage every PayCam merchant from one place.",
@@ -113,6 +140,7 @@ export const translations = {
   fr: {
     nav: {
       merchants: "Marchands",
+      invites: "Invitations",
     },
     common: {
       loading: "Chargement…",
@@ -122,6 +150,32 @@ export const translations = {
       cancel: "Annuler",
       previous: "Précédent",
       next: "Suivant",
+    },
+    invites: {
+      title: "Inviter un administrateur",
+      description: "Envoyez une invitation pour ajouter un nouveau membre du personnel PayCam à la console admin.",
+      email: "E-mail",
+      submit: "Envoyer l'invitation",
+      submitLoading: "Envoi en cours…",
+      sentToast: "Invitation envoyée",
+    },
+    acceptInvite: {
+      title: "Configurez votre compte administrateur",
+      subtitle: "Vous avez été invité(e) à rejoindre la console admin PayCam.",
+      password: "Mot de passe",
+      passwordHint: "Au moins 8 caractères.",
+      confirmPassword: "Confirmez le mot de passe",
+      passwordMismatch: "Les mots de passe ne correspondent pas.",
+      submit: "Créer le compte",
+      submitLoading: "Création du compte…",
+      totpTitle: "Configurez l'authentification à deux facteurs",
+      setupKeyLabel: "Clé de configuration",
+      totpBody:
+        "Ajoutez cette clé à votre application d'authentification (Google Authenticator, Authy, 1Password) maintenant — vous ne pourrez plus la revoir ensuite.",
+      totpCopied: "Clé de configuration copiée",
+      continueButton: "Je l'ai enregistrée — continuer",
+      invalidToken: "Ce lien d'invitation est invalide, expiré ou déjà utilisé.",
+      missingToken: "Aucun jeton d'invitation trouvé dans ce lien.",
     },
     auth: {
       brandHeadline: "Gérez tous les marchands PayCam depuis un seul endroit.",

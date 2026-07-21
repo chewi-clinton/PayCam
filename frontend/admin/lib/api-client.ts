@@ -161,4 +161,23 @@ export const api = {
 
   revokeApiKey: (id: number | string) =>
     request<{ message: string }>(`/admin/api-keys/${id}/revoke/`, { method: "POST" }),
+
+  inviteAdmin: (email: string) =>
+    request<{ message: string }>("/admin/invites/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  acceptInvite: (data: { token: string; password: string }) =>
+    request<{
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+      totp_secret: string;
+      totp_uri: string;
+    }>("/admin/invites/accept/", {
+      method: "POST",
+      body: JSON.stringify(data),
+      auth: false,
+    }),
 };

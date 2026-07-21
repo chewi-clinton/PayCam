@@ -3,11 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
 
-const NAV_ITEMS = [{ href: "/merchants", key: "merchants", icon: Users }] as const;
+const NAV_ITEMS = [
+  { href: "/merchants", key: "merchants", icon: Users },
+  { href: "/invites", key: "invites", icon: UserPlus },
+] as const;
 
 function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();

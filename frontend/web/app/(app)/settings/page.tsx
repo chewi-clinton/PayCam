@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, ShieldCheck } from "lucide-react";
+import { useRef, useState } from "react";
+import { Copy, ShieldCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,27 @@ function BusinessProfile() {
   const [logoUrl, setLogoUrl] = useState(merchant?.logo_url ?? "");
   const [defaultWebhookUrl, setDefaultWebhookUrl] = useState(merchant?.default_webhook_url ?? "");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const updated = await api.uploadLogo(file);
+      setLogoUrl(updated.logo_url ?? "");
+      await refreshProfile();
+      toast.success(t("settings.businessProfile.logoUploaded"));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("common.genericError"));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,13 +102,44 @@ function BusinessProfile() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="logo-url">{t("settings.businessProfile.logoUrl")}</Label>
-            <Input
-              id="logo-url"
-              type="url"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://example.com/logo.png"
-            />
+            <div className="flex items-center gap-3">
+              {logoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- arbitrary merchant-provided URL, not a static/local asset
+                <img
+                  src={logoUrl}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-md border border-border object-cover"
+                />
+              )}
+              <Input
+                id="logo-url"
+                type="url"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="https://example.com/logo.png"
+                className="flex-1"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleFileSelected}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={t("settings.businessProfile.uploadLogo")}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{t("settings.businessProfile.uploadHint")}</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="default-webhook-url">{t("settings.businessProfile.defaultWebhookUrl")}</Label>

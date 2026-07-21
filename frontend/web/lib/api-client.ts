@@ -38,8 +38,9 @@ async function request<T>(
   options: RequestInit & { auth?: boolean } = {}
 ): Promise<T> {
   const { auth = true, headers, ...rest } = options;
+  const isFormData = rest.body instanceof FormData;
   const finalHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(headers as Record<string, string>),
   };
 
@@ -174,6 +175,15 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+
+  uploadLogo: (file: File) => {
+    const formData = new FormData();
+    formData.append("logo", file);
+    return request<Merchant>("/auth/profile/logo/", {
+      method: "POST",
+      body: formData,
+    });
+  },
 
   forgotPassword: (email: string) =>
     request<{ message: string }>("/auth/forgot-password/", {

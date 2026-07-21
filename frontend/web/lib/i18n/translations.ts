@@ -185,6 +185,9 @@ export const translations = {
         businessName: "Business name",
         businessNamePlaceholder: "Your business name",
         logoUrl: "Logo URL",
+        uploadLogo: "Upload logo",
+        uploadHint: "JPEG, PNG, WEBP, or GIF, up to 2MB.",
+        logoUploaded: "Logo uploaded",
         defaultWebhookUrl: "Default webhook URL",
         defaultWebhookUrlHint:
           "Used when a payment request doesn't specify its own webhook_url.",
@@ -644,6 +647,9 @@ export const translations = {
         businessName: "Nom de l'entreprise",
         businessNamePlaceholder: "Le nom de votre entreprise",
         logoUrl: "URL du logo",
+        uploadLogo: "Téléverser un logo",
+        uploadHint: "JPEG, PNG, WEBP ou GIF, jusqu'à 2 Mo.",
+        logoUploaded: "Logo téléversé",
         defaultWebhookUrl: "URL webhook par défaut",
         defaultWebhookUrlHint:
           "Utilisée quand une demande de paiement ne spécifie pas son propre webhook_url.",

@@ -7,10 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionsTable } from "@/components/dashboard/transactions-table";
 import { api, type Transaction } from "@/lib/api-client";
 import { useTransactionUpdates } from "@/lib/use-transaction-updates";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const PAGE_SIZE = 20;
 
 export default function TransactionsPage() {
+  const { t } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [count, setCount] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -36,7 +38,7 @@ export default function TransactionsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transactions</CardTitle>
+        <CardTitle>{t("transactions.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -50,8 +52,11 @@ export default function TransactionsPage() {
             <TransactionsTable transactions={transactions} />
             <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
               <span>
-                Showing {transactions.length === 0 ? 0 : offset + 1}–{offset + transactions.length} of{" "}
-                {count}
+                {t("transactions.showing", {
+                  from: transactions.length === 0 ? 0 : offset + 1,
+                  to: offset + transactions.length,
+                  count,
+                })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -60,7 +65,7 @@ export default function TransactionsPage() {
                   disabled={offset === 0}
                   onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                 >
-                  Previous
+                  {t("transactions.previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -68,7 +73,7 @@ export default function TransactionsPage() {
                   disabled={offset + PAGE_SIZE >= count}
                   onClick={() => setOffset(offset + PAGE_SIZE)}
                 >
-                  Next
+                  {t("transactions.next")}
                 </Button>
               </div>
             </div>

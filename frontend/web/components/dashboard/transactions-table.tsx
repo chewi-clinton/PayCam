@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Table,
@@ -10,13 +12,16 @@ import {
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { MethodBadge } from "@/components/dashboard/method-badge";
 import { formatAmount, formatDate } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/language-context";
 import type { Transaction } from "@/lib/api-client";
 
 export function TransactionsTable({ transactions }: { transactions: Transaction[] }) {
+  const { t } = useLanguage();
+
   if (transactions.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
-        No transactions yet.
+        {t("table.empty")}
       </div>
     );
   }
@@ -25,11 +30,11 @@ export function TransactionsTable({ transactions }: { transactions: Transaction[
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Reference</TableHead>
-          <TableHead>Method</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Date</TableHead>
+          <TableHead>{t("table.reference")}</TableHead>
+          <TableHead>{t("table.method")}</TableHead>
+          <TableHead>{t("table.amount")}</TableHead>
+          <TableHead>{t("table.status")}</TableHead>
+          <TableHead>{t("table.date")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

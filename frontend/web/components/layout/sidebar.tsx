@@ -13,19 +13,21 @@ import {
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/api-keys", label: "API Keys", icon: KeyRound },
-  { href: "/webhooks", label: "Webhooks", icon: Webhook },
-  { href: "/sandbox", label: "Sandbox", icon: FlaskConical },
-  { href: "/docs", label: "Docs", icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
+  { href: "/api-keys", key: "apiKeys", icon: KeyRound },
+  { href: "/webhooks", key: "webhooks", icon: Webhook },
+  { href: "/sandbox", key: "sandbox", icon: FlaskConical },
+  { href: "/docs", key: "docs", icon: BookOpen },
+  { href: "/settings", key: "settings", icon: Settings },
+] as const;
 
 function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -34,7 +36,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
         <span className="text-lg font-semibold">PayCam</span>
       </div>
       <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
@@ -49,7 +51,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
               )}
             >
               <Icon className="h-4 w-4" />
-              {label}
+              {t(`nav.${key}`)}
             </Link>
           );
         })}

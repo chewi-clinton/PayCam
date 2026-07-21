@@ -16,14 +16,24 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function paymentMethodLabel(method: string): string {
-  const labels: Record<string, string> = {
-    mtn_momo: "MTN MoMo",
-    orange_money: "Orange Money",
-    card: "Card",
-    crypto_btc: "Bitcoin",
-    crypto_eth: "Ethereum",
-    crypto_usdt: "USDT",
+export function paymentMethodLabel(method: string, language: "en" | "fr" = "en"): string {
+  const labels: Record<string, Record<string, string>> = {
+    en: {
+      mtn_momo: "MTN MoMo",
+      orange_money: "Orange Money",
+      card: "Card",
+      crypto_btc: "Bitcoin",
+      crypto_eth: "Ethereum",
+      crypto_usdt: "USDT",
+    },
+    fr: {
+      mtn_momo: "MTN MoMo",
+      orange_money: "Orange Money",
+      card: "Carte",
+      crypto_btc: "Bitcoin",
+      crypto_eth: "Ethereum",
+      crypto_usdt: "USDT",
+    },
   };
-  return labels[method] ?? method;
+  return labels[language][method] ?? method;
 }

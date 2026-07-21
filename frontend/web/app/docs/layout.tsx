@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { DocsProvider } from "@/lib/docs-context";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { cn } from "@/lib/utils";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             </Link>
           </div>
           <div className="flex items-center gap-1">
+            <LanguageToggle />
             <ThemeToggle />
             <Link
               href="/dashboard"

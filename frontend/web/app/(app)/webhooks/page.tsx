@@ -15,30 +15,33 @@ import {
 } from "@/components/ui/table";
 import { api, type WebhookLog } from "@/lib/api-client";
 import { formatDate } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function DeliveryBadge({ log }: { log: WebhookLog }) {
+  const { t } = useLanguage();
   if (log.delivered_at && log.http_status && log.http_status < 300) {
     return (
       <Badge variant="outline" className="text-success border-success/30 bg-success/10">
-        Delivered
+        {t("webhooks.delivered")}
       </Badge>
     );
   }
   if (log.next_retry_at) {
     return (
       <Badge variant="outline" className="text-warning border-warning/30 bg-warning/10">
-        Retrying
+        {t("webhooks.retrying")}
       </Badge>
     );
   }
   return (
     <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10">
-      Failed
+      {t("webhooks.failed")}
     </Badge>
   );
 }
 
 export default function WebhooksPage() {
+  const { t } = useLanguage();
   const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,10 +55,8 @@ export default function WebhooksPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Webhook delivery logs</CardTitle>
-        <CardDescription>
-          Every attempt PayCam made to notify your webhook URL for a transaction.
-        </CardDescription>
+        <CardTitle>{t("webhooks.title")}</CardTitle>
+        <CardDescription>{t("webhooks.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -66,18 +67,18 @@ export default function WebhooksPage() {
           </div>
         ) : logs.length === 0 ? (
           <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
-            No webhook deliveries yet.
+            {t("webhooks.empty")}
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Transaction</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Attempt</TableHead>
-                <TableHead>HTTP status</TableHead>
-                <TableHead>Result</TableHead>
-                <TableHead>Time</TableHead>
+                <TableHead>{t("webhooks.table.transaction")}</TableHead>
+                <TableHead>{t("webhooks.table.url")}</TableHead>
+                <TableHead>{t("webhooks.table.attempt")}</TableHead>
+                <TableHead>{t("webhooks.table.httpStatus")}</TableHead>
+                <TableHead>{t("webhooks.table.result")}</TableHead>
+                <TableHead>{t("webhooks.table.time")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

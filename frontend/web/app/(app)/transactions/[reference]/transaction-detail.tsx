@@ -11,6 +11,7 @@ import { MethodBadge } from "@/components/dashboard/method-badge";
 import { api, ApiError, type Transaction } from "@/lib/api-client";
 import { formatAmount, formatDate } from "@/lib/format";
 import { useTransactionUpdates } from "@/lib/use-transaction-updates";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -22,6 +23,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export function TransactionDetail({ reference }: { reference: string }) {
+  const { t } = useLanguage();
   const [txn, setTxn] = useState<Transaction | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +32,9 @@ export function TransactionDetail({ reference }: { reference: string }) {
       const res = await api.getTransaction(reference);
       setTxn(res);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load transaction.");
+      setError(err instanceof ApiError ? err.message : t("transactions.failedToLoad"));
     }
-  }, [reference]);
+  }, [reference, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount
@@ -49,7 +51,7 @@ export function TransactionDetail({ reference }: { reference: string }) {
         href="/transactions"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to transactions
+        <ArrowLeft className="h-4 w-4" /> {t("transactions.backToTransactions")}
       </Link>
 
       {error && (
@@ -66,14 +68,14 @@ export function TransactionDetail({ reference }: { reference: string }) {
             <CardTitle className="font-mono text-base">{txn.reference}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Row label="Status" value={<StatusBadge status={txn.status} />} />
-            <Row label="Amount" value={formatAmount(txn.amount, txn.currency)} />
-            <Row label="Payment method" value={<MethodBadge method={txn.payment_method} />} />
-            <Row label="Phone number" value={txn.phone_number ?? "—"} />
-            <Row label="Description" value={txn.description ?? "—"} />
-            <Row label="External reference" value={txn.external_reference ?? "—"} />
-            <Row label="Created" value={formatDate(txn.created_at)} />
-            <Row label="Last updated" value={formatDate(txn.updated_at)} />
+            <Row label={t("transactions.fields.status")} value={<StatusBadge status={txn.status} />} />
+            <Row label={t("transactions.fields.amount")} value={formatAmount(txn.amount, txn.currency)} />
+            <Row label={t("transactions.fields.paymentMethod")} value={<MethodBadge method={txn.payment_method} />} />
+            <Row label={t("transactions.fields.phoneNumber")} value={txn.phone_number ?? "—"} />
+            <Row label={t("transactions.fields.description")} value={txn.description ?? "—"} />
+            <Row label={t("transactions.fields.externalReference")} value={txn.external_reference ?? "—"} />
+            <Row label={t("transactions.fields.created")} value={formatDate(txn.created_at)} />
+            <Row label={t("transactions.fields.lastUpdated")} value={formatDate(txn.updated_at)} />
           </CardContent>
         </Card>
       )}

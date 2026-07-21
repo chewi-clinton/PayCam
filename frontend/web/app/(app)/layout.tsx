@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function Guard({ children }: { children: React.ReactNode }) {
   const { merchant, loading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -20,7 +22,7 @@ function Guard({ children }: { children: React.ReactNode }) {
   if (loading || !merchant) {
     return (
       <div className="flex h-screen items-center justify-center text-muted-foreground">
-        Loading…
+        {t("appShell.loading")}
       </div>
     );
   }

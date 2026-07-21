@@ -3,10 +3,15 @@
 import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmount } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function VolumeChart({ data }: { data: { date: string; volume: string }[] }) {
+  const { t, language } = useLanguage();
   const chartData = data.map((d) => ({
-    date: new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+    date: new Date(d.date).toLocaleDateString(language === "fr" ? "fr-FR" : "en-GB", {
+      day: "numeric",
+      month: "short",
+    }),
     volume: Number(d.volume),
   }));
 
@@ -14,13 +19,13 @@ export function VolumeChart({ data }: { data: { date: string; volume: string }[]
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Gross volume — last 7 days
+          {t("dashboard.volumeChart.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="h-64">
         {chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            No successful transactions yet.
+            {t("dashboard.volumeChart.empty")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

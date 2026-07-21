@@ -36,8 +36,10 @@ import {
 import { api, ApiError, type ApiKey } from "@/lib/api-client";
 import { formatDate } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function ApiKeysPage() {
+  const { t } = useLanguage();
   const { merchant } = useAuth();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function ApiKeysPage() {
       setTotpCode("");
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to create API key.");
+      setError(err instanceof ApiError ? err.message : t("apiKeys.failedToCreate"));
     } finally {
       setCreating(false);
     }
@@ -77,7 +79,7 @@ export default function ApiKeysPage() {
 
   const copy = (value: string, label: string) => {
     navigator.clipboard.writeText(value);
-    toast.success(`${label} copied to clipboard`);
+    toast.success(t("apiKeys.copiedToast", { label }));
   };
 
   const closeDialog = () => {
@@ -91,60 +93,60 @@ export default function ApiKeysPage() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <div>
-          <CardTitle>API Keys</CardTitle>
-          <CardDescription>Use these to authenticate server-to-server requests.</CardDescription>
+          <CardTitle>{t("apiKeys.title")}</CardTitle>
+          <CardDescription>{t("apiKeys.description")}</CardDescription>
         </div>
         {merchant?.totp_enabled && (
           <Dialog open={dialogOpen} onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}>
             <DialogTrigger
               render={
                 <Button size="sm">
-                  <Plus className="h-4 w-4" /> Create API key
+                  <Plus className="h-4 w-4" /> {t("apiKeys.createButton")}
                 </Button>
               }
             />
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{created ? "API key created" : "Confirm with 2FA"}</DialogTitle>
+                <DialogTitle>
+                  {created ? t("apiKeys.dialog.createdTitle") : t("apiKeys.dialog.confirmTitle")}
+                </DialogTitle>
               </DialogHeader>
 
               {created ? (
                 <div className="space-y-4">
                   <Alert>
-                    <AlertDescription>
-                      Copy these now — the secret key won&apos;t be shown again.
-                    </AlertDescription>
+                    <AlertDescription>{t("apiKeys.dialog.copyNotice")}</AlertDescription>
                   </Alert>
                   <div className="space-y-2">
-                    <Label>API key</Label>
+                    <Label>{t("apiKeys.dialog.apiKeyLabel")}</Label>
                     <div className="flex gap-2">
                       <Input readOnly value={created.api_key} className="font-mono text-xs" />
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
-                        onClick={() => copy(created.api_key, "API key")}
+                        onClick={() => copy(created.api_key, t("apiKeys.dialog.apiKeyLabel"))}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Webhook secret</Label>
+                    <Label>{t("apiKeys.dialog.webhookSecretLabel")}</Label>
                     <div className="flex gap-2">
                       <Input readOnly value={created.webhook_secret} className="font-mono text-xs" />
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
-                        onClick={() => copy(created.webhook_secret, "Webhook secret")}
+                        onClick={() => copy(created.webhook_secret, t("apiKeys.dialog.webhookSecretLabel"))}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={closeDialog}>Done</Button>
+                    <Button onClick={closeDialog}>{t("apiKeys.dialog.done")}</Button>
                   </DialogFooter>
                 </div>
               ) : (
@@ -155,7 +157,7 @@ export default function ApiKeysPage() {
                     </Alert>
                   )}
                   <div className="space-y-2">
-                    <Label htmlFor="create-totp">2FA code</Label>
+                    <Label htmlFor="create-totp">{t("apiKeys.dialog.totpCode")}</Label>
                     <Input
                       id="create-totp"
                       inputMode="numeric"
@@ -169,7 +171,7 @@ export default function ApiKeysPage() {
                   </div>
                   <DialogFooter>
                     <Button type="submit" disabled={creating}>
-                      {creating ? "Verifying…" : "Create key"}
+                      {creating ? t("apiKeys.dialog.creating") : t("apiKeys.dialog.createKey")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -182,9 +184,9 @@ export default function ApiKeysPage() {
         {!merchant?.totp_enabled && (
           <Alert className="mb-4">
             <AlertDescription>
-              Enable two-factor authentication before creating API keys.{" "}
+              {t("apiKeys.enable2faPrompt")}{" "}
               <Link href="/settings" className="font-medium text-primary hover:underline">
-                Set up 2FA
+                {t("apiKeys.setup2fa")}
               </Link>
             </AlertDescription>
           </Alert>
@@ -198,17 +200,17 @@ export default function ApiKeysPage() {
           </div>
         ) : keys.length === 0 ? (
           <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
-            No API keys yet.
+            {t("apiKeys.empty")}
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Key</TableHead>
-                <TableHead>Environment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last used</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>{t("apiKeys.table.key")}</TableHead>
+                <TableHead>{t("apiKeys.table.environment")}</TableHead>
+                <TableHead>{t("apiKeys.table.status")}</TableHead>
+                <TableHead>{t("apiKeys.table.lastUsed")}</TableHead>
+                <TableHead>{t("apiKeys.table.created")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,11 +220,11 @@ export default function ApiKeysPage() {
                   <TableCell className="capitalize">{key.environment}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={key.is_active ? "text-success border-success/30 bg-success/10" : ""}>
-                      {key.is_active ? "Active" : "Revoked"}
+                      {key.is_active ? t("apiKeys.active") : t("apiKeys.revoked")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {key.last_used_at ? formatDate(key.last_used_at) : "Never"}
+                    {key.last_used_at ? formatDate(key.last_used_at) : t("common.never")}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{formatDate(key.created_at)}</TableCell>
                 </TableRow>

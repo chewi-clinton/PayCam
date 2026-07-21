@@ -4,6 +4,7 @@ import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { useAuth } from "@/lib/auth-context";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
@@ -38,6 +39,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </p>
           <p className="text-muted-foreground">{merchant?.email}</p>
         </div>
+        <LanguageToggle />
         <ThemeToggle />
         <Button variant="ghost" size="icon" onClick={logout} aria-label="Log out">
           <LogOut className="h-4 w-4" />

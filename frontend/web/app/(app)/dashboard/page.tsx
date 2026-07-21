@@ -10,8 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, type DashboardSummary, type Transaction } from "@/lib/api-client";
 import { formatAmount } from "@/lib/format";
 import { useTransactionUpdates } from "@/lib/use-transaction-updates";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recent, setRecent] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,21 +51,21 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Gross volume"
+          label={t("dashboard.stats.grossVolume")}
           value={formatAmount(summary.gross_volume_xaf, "XAF")}
           icon={Wallet}
         />
         <StatCard
-          label="Transactions"
+          label={t("dashboard.stats.transactions")}
           value={String(summary.transaction_count)}
           icon={ArrowLeftRight}
         />
         <StatCard
-          label="Success rate"
+          label={t("dashboard.stats.successRate")}
           value={`${summary.success_rate}%`}
           icon={CheckCircle2}
         />
-        <StatCard label="Pending" value={String(summary.pending_count)} icon={Clock} />
+        <StatCard label={t("dashboard.stats.pending")} value={String(summary.pending_count)} icon={Clock} />
       </div>
 
       <VolumeChart data={summary.last_7_days} />
@@ -71,7 +73,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Recent activity
+            {t("dashboard.recentActivity")}
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -28,8 +28,10 @@ import {
 import { api, ApiError } from "@/lib/api-client";
 import { formatDate } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function TwoFactorSetup() {
+  const { t } = useLanguage();
   const { refreshProfile } = useAuth();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"password" | "verify">("password");
@@ -57,7 +59,7 @@ function TwoFactorSetup() {
       setSecret(res.secret);
       setStep("verify");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to start 2FA setup.");
+      setError(err instanceof ApiError ? err.message : t("settings.twoFactor.failedToStart"));
     } finally {
       setLoading(false);
     }
@@ -69,11 +71,11 @@ function TwoFactorSetup() {
     setLoading(true);
     try {
       await api.totpVerify(code);
-      toast.success("Two-factor authentication enabled");
+      toast.success(t("settings.twoFactor.enabledToast"));
       await refreshProfile();
       reset();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Invalid code. Please try again.");
+      setError(err instanceof ApiError ? err.message : t("settings.twoFactor.invalidCode"));
     } finally {
       setLoading(false);
     }
@@ -84,14 +86,16 @@ function TwoFactorSetup() {
       <DialogTrigger
         render={
           <Button size="sm">
-            <ShieldCheck className="h-4 w-4" /> Enable 2FA
+            <ShieldCheck className="h-4 w-4" /> {t("settings.twoFactor.enableButton")}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {step === "password" ? "Confirm your password" : "Scan or enter the key"}
+            {step === "password"
+              ? t("settings.twoFactor.confirmPasswordTitle")
+              : t("settings.twoFactor.scanKeyTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -104,7 +108,7 @@ function TwoFactorSetup() {
         {step === "password" ? (
           <form onSubmit={handleStart} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="setup-password">Password</Label>
+              <Label htmlFor="setup-password">{t("settings.twoFactor.password")}</Label>
               <Input
                 id="setup-password"
                 type="password"
@@ -116,18 +120,15 @@ function TwoFactorSetup() {
             </div>
             <DialogFooter>
               <Button type="submit" disabled={loading}>
-                {loading ? "Confirming…" : "Continue"}
+                {loading ? t("settings.twoFactor.confirming") : t("settings.twoFactor.continueButton")}
               </Button>
             </DialogFooter>
           </form>
         ) : (
           <form onSubmit={handleVerify} className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Add this key to your authenticator app (Google Authenticator, Authy, 1Password),
-              then enter the 6-digit code it generates.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("settings.twoFactor.setupHint")}</p>
             <div className="space-y-2">
-              <Label>Setup key</Label>
+              <Label>{t("settings.twoFactor.setupKey")}</Label>
               <div className="flex gap-2">
                 <Input readOnly value={secret} className="font-mono text-xs" />
                 <Button
@@ -136,7 +137,7 @@ function TwoFactorSetup() {
                   size="icon"
                   onClick={() => {
                     navigator.clipboard.writeText(secret);
-                    toast.success("Setup key copied");
+                    toast.success(t("settings.twoFactor.setupKeyCopied"));
                   }}
                 >
                   <Copy className="h-4 w-4" />
@@ -144,7 +145,7 @@ function TwoFactorSetup() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="verify-code">6-digit code</Label>
+              <Label htmlFor="verify-code">{t("settings.twoFactor.code")}</Label>
               <Input
                 id="verify-code"
                 inputMode="numeric"
@@ -158,7 +159,7 @@ function TwoFactorSetup() {
             </div>
             <DialogFooter>
               <Button type="submit" disabled={loading}>
-                {loading ? "Verifying…" : "Enable 2FA"}
+                {loading ? t("settings.twoFactor.verifying") : t("settings.twoFactor.enableSubmit")}
               </Button>
             </DialogFooter>
           </form>
@@ -169,6 +170,7 @@ function TwoFactorSetup() {
 }
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { merchant, logout } = useAuth();
 
   if (!merchant) return null;
@@ -177,22 +179,22 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>Your PayCam merchant account details.</CardDescription>
+          <CardTitle>{t("settings.account.title")}</CardTitle>
+          <CardDescription>{t("settings.account.description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between border-b border-border py-2">
-            <span className="text-sm text-muted-foreground">Name</span>
+            <span className="text-sm text-muted-foreground">{t("settings.account.name")}</span>
             <span className="text-sm font-medium">
               {merchant.first_name} {merchant.last_name}
             </span>
           </div>
           <div className="flex items-center justify-between border-b border-border py-2">
-            <span className="text-sm text-muted-foreground">Email</span>
+            <span className="text-sm text-muted-foreground">{t("settings.account.email")}</span>
             <span className="text-sm font-medium">{merchant.email}</span>
           </div>
           <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-muted-foreground">Merchant since</span>
+            <span className="text-sm text-muted-foreground">{t("settings.account.merchantSince")}</span>
             <span className="text-sm font-medium">{formatDate(merchant.created_at)}</span>
           </div>
         </CardContent>
@@ -201,12 +203,12 @@ export default function SettingsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Two-factor authentication</CardTitle>
-            <CardDescription>Required before you can create API keys.</CardDescription>
+            <CardTitle>{t("settings.twoFactor.title")}</CardTitle>
+            <CardDescription>{t("settings.twoFactor.description")}</CardDescription>
           </div>
           {merchant.totp_enabled ? (
             <Badge variant="outline" className="text-success border-success/30 bg-success/10">
-              Enabled
+              {t("settings.twoFactor.enabled")}
             </Badge>
           ) : (
             <TwoFactorSetup />
@@ -216,15 +218,13 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Session</CardTitle>
-          <CardDescription>
-            Sign out of every device and session currently signed in as you.
-          </CardDescription>
+          <CardTitle>{t("settings.session.title")}</CardTitle>
+          <CardDescription>{t("settings.session.description")}</CardDescription>
         </CardHeader>
         <Separator />
         <CardFooter className="pt-6">
           <Button variant="destructive" onClick={logout}>
-            Log out everywhere
+            {t("settings.session.logoutEverywhere")}
           </Button>
         </CardFooter>
       </Card>

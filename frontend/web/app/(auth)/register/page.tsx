@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api, ApiError } from "@/lib/api-client";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,7 +33,7 @@ export default function RegisterPage() {
       });
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof ApiError ? err.message : t("common.genericError"));
     } finally {
       setLoading(false);
     }
@@ -40,10 +42,8 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Create your account</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Start accepting payments in minutes.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("auth.register.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.register.subtitle")}</p>
       </div>
 
       {error && (
@@ -55,7 +55,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="first_name">First name</Label>
+            <Label htmlFor="first_name">{t("auth.register.firstName")}</Label>
             <Input
               id="first_name"
               required
@@ -64,7 +64,7 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="last_name">Last name</Label>
+            <Label htmlFor="last_name">{t("auth.register.lastName")}</Label>
             <Input
               id="last_name"
               required
@@ -74,7 +74,7 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("auth.register.email")}</Label>
           <Input
             id="email"
             type="email"
@@ -85,7 +85,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t("auth.register.password")}</Label>
           <Input
             id="password"
             type="password"
@@ -94,17 +94,17 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+          <p className="text-xs text-muted-foreground">{t("auth.register.passwordHint")}</p>
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? t("auth.register.submitLoading") : t("auth.register.submit")}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("auth.register.haveAccount")}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Log in
+          {t("auth.register.logIn")}
         </Link>
       </p>
     </div>

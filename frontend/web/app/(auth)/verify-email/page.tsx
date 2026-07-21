@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api, ApiError, setToken } from "@/lib/api-client";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
+  const { t } = useLanguage();
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ function VerifyEmailForm() {
       setSuccess(true);
       setTimeout(() => router.push("/dashboard"), 800);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof ApiError ? err.message : t("common.genericError"));
     } finally {
       setLoading(false);
     }
@@ -37,15 +39,16 @@ function VerifyEmailForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Verify your email</h1>
+        <h1 className="text-2xl font-semibold">{t("auth.verify.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>.
+          {t("auth.verify.subtitlePrefix")}{" "}
+          <span className="font-medium text-foreground">{email}</span>.
         </p>
       </div>
 
       {success ? (
         <Alert>
-          <AlertDescription>Email verified — taking you to your dashboard…</AlertDescription>
+          <AlertDescription>{t("auth.verify.success")}</AlertDescription>
         </Alert>
       ) : (
         <>
@@ -56,7 +59,7 @@ function VerifyEmailForm() {
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="otp">Verification code</Label>
+              <Label htmlFor="otp">{t("auth.verify.code")}</Label>
               <Input
                 id="otp"
                 inputMode="numeric"
@@ -69,7 +72,7 @@ function VerifyEmailForm() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Verifying…" : "Verify email"}
+              {loading ? t("auth.verify.submitLoading") : t("auth.verify.submit")}
             </Button>
           </form>
         </>

@@ -1,5 +1,8 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const STYLES: Record<string, string> = {
   success: "bg-success/10 text-success border-success/20",
@@ -8,17 +11,11 @@ const STYLES: Record<string, string> = {
   expired: "bg-muted text-muted-foreground border-border",
 };
 
-const LABELS: Record<string, string> = {
-  success: "Success",
-  pending: "Pending",
-  failed: "Failed",
-  expired: "Expired",
-};
-
 export function StatusBadge({ status }: { status: string }) {
+  const { t } = useLanguage();
   return (
     <Badge variant="outline" className={cn("font-medium capitalize", STYLES[status])}>
-      {LABELS[status] ?? status}
+      {STYLES[status] ? t(`status.${status}`) : status}
     </Badge>
   );
 }

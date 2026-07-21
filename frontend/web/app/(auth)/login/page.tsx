@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api, ApiError, setToken } from "@/lib/api-client";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const expired = searchParams.get("expired") === "1";
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,7 +43,7 @@ function LoginForm() {
           setError(err.message);
         }
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(t("common.genericError"));
       }
     } finally {
       setLoading(false);
@@ -51,15 +53,13 @@ function LoginForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Log in</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Welcome back — enter your details to access your dashboard.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("auth.login.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.login.subtitle")}</p>
       </div>
 
       {expired && (
         <Alert>
-          <AlertDescription>Your session expired. Please log in again.</AlertDescription>
+          <AlertDescription>{t("auth.login.sessionExpired")}</AlertDescription>
         </Alert>
       )}
       {error && (
@@ -70,7 +70,7 @@ function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("auth.login.email")}</Label>
           <Input
             id="email"
             type="email"
@@ -81,7 +81,7 @@ function LoginForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t("auth.login.password")}</Label>
           <Input
             id="password"
             type="password"
@@ -92,7 +92,7 @@ function LoginForm() {
         </div>
         {needsTotp && (
           <div className="space-y-2">
-            <Label htmlFor="totp">2FA code</Label>
+            <Label htmlFor="totp">{t("auth.login.totpCode")}</Label>
             <Input
               id="totp"
               inputMode="numeric"
@@ -103,20 +103,18 @@ function LoginForm() {
               placeholder="123456"
               autoFocus
             />
-            <p className="text-xs text-muted-foreground">
-              Enter the 6-digit code from your authenticator app.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("auth.login.totpHint")}</p>
           </div>
         )}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Logging in…" : "Log in"}
+          {loading ? t("auth.login.submitLoading") : t("auth.login.submit")}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t("auth.login.noAccount")}{" "}
         <Link href="/register" className="font-medium text-primary hover:underline">
-          Sign up
+          {t("auth.login.signUp")}
         </Link>
       </p>
     </div>

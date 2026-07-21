@@ -24,8 +24,10 @@ import {
   type MomoInitiateResult,
   type CryptoInitiateResult,
 } from "@/lib/sandbox-api";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function SandboxPage() {
+  const { t } = useLanguage();
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
@@ -42,16 +44,12 @@ export default function SandboxPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Sandbox</CardTitle>
-          <CardDescription>
-            Trigger a real payment against your own live API key to test integration and QR
-            codes. This calls the same endpoints your server would call — nothing here is
-            simulated.
-          </CardDescription>
+          <CardTitle>{t("sandbox.title")}</CardTitle>
+          <CardDescription>{t("sandbox.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="sandbox-key">API key</Label>
+            <Label htmlFor="sandbox-key">{t("sandbox.apiKeyLabel")}</Label>
             <Input
               id="sandbox-key"
               value={apiKey}
@@ -59,9 +57,7 @@ export default function SandboxPage() {
               placeholder="sk_live_..."
               className="font-mono text-sm"
             />
-            <p className="text-xs text-muted-foreground">
-              Stored only in this browser. Get one from the API Keys page.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("sandbox.apiKeyHint")}</p>
           </div>
         </CardContent>
       </Card>
@@ -75,6 +71,7 @@ export default function SandboxPage() {
 }
 
 function MomoTester({ apiKey }: { apiKey: string }) {
+  const { t } = useLanguage();
   const [paymentMethod, setPaymentMethod] = useState<"mtn_momo" | "orange_money">("mtn_momo");
   const [amount, setAmount] = useState("1000");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -97,7 +94,7 @@ function MomoTester({ apiKey }: { apiKey: string }) {
       });
       setResult(res);
     } catch (err) {
-      setError(err instanceof SandboxApiError ? err.message : "Request failed.");
+      setError(err instanceof SandboxApiError ? err.message : t("sandbox.requestFailed"));
     } finally {
       setLoading(false);
     }
@@ -106,15 +103,13 @@ function MomoTester({ apiKey }: { apiKey: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mobile Money (XAF)</CardTitle>
-        <CardDescription>
-          Sends a push notification to the customer&apos;s PayCam app for approval.
-        </CardDescription>
+        <CardTitle>{t("sandbox.momo.title")}</CardTitle>
+        <CardDescription>{t("sandbox.momo.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Network</Label>
+            <Label>{t("sandbox.momo.network")}</Label>
             <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as typeof paymentMethod)}>
               <SelectTrigger className="w-full">
                 <SelectValue>
@@ -128,7 +123,7 @@ function MomoTester({ apiKey }: { apiKey: string }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="momo-amount">Amount (XAF)</Label>
+            <Label htmlFor="momo-amount">{t("sandbox.momo.amount")}</Label>
             <Input
               id="momo-amount"
               inputMode="decimal"
@@ -138,7 +133,7 @@ function MomoTester({ apiKey }: { apiKey: string }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="momo-phone">Customer phone number</Label>
+            <Label htmlFor="momo-phone">{t("sandbox.momo.phone")}</Label>
             <Input
               id="momo-phone"
               required
@@ -146,12 +141,10 @@ function MomoTester({ apiKey }: { apiKey: string }) {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
-              Must be a registered PayCam mobile app customer.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("sandbox.momo.phoneHint")}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="momo-description">Description</Label>
+            <Label htmlFor="momo-description">{t("sandbox.momo.description2")}</Label>
             <Textarea
               id="momo-description"
               value={description}
@@ -159,11 +152,9 @@ function MomoTester({ apiKey }: { apiKey: string }) {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading || !apiKey}>
-            {loading ? "Sending…" : "Initiate payment"}
+            {loading ? t("sandbox.momo.submitLoading") : t("sandbox.momo.submit")}
           </Button>
-          {!apiKey && (
-            <p className="text-xs text-muted-foreground">Enter an API key above first.</p>
-          )}
+          {!apiKey && <p className="text-xs text-muted-foreground">{t("sandbox.momo.needKey")}</p>}
         </form>
 
         {error && (
@@ -175,16 +166,14 @@ function MomoTester({ apiKey }: { apiKey: string }) {
         {result && (
           <div className="space-y-2 rounded-lg border border-border p-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Reference</span>
+              <span className="text-muted-foreground">{t("sandbox.momo.reference")}</span>
               <span className="font-mono">{result.reference}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Status</span>
+              <span className="text-muted-foreground">{t("sandbox.momo.status")}</span>
               <span className="capitalize">{result.status}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Approve or decline it from the customer&apos;s PayCam mobile app.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("sandbox.momo.approveHint")}</p>
           </div>
         )}
       </CardContent>
@@ -193,6 +182,7 @@ function MomoTester({ apiKey }: { apiKey: string }) {
 }
 
 function CryptoTester({ apiKey }: { apiKey: string }) {
+  const { t } = useLanguage();
   const [currency, setCurrency] = useState<"BTC" | "ETH" | "USDT">("BTC");
   const [amount, setAmount] = useState("0.0001");
   const [walletAddress, setWalletAddress] = useState("");
@@ -215,7 +205,7 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
       });
       setResult(res);
     } catch (err) {
-      setError(err instanceof SandboxApiError ? err.message : "Request failed.");
+      setError(err instanceof SandboxApiError ? err.message : t("sandbox.requestFailed"));
     } finally {
       setLoading(false);
     }
@@ -224,15 +214,13 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Crypto (testnet)</CardTitle>
-        <CardDescription>
-          Sends to a PayCam-generated customer wallet address and returns a scannable QR code.
-        </CardDescription>
+        <CardTitle>{t("sandbox.crypto.title")}</CardTitle>
+        <CardDescription>{t("sandbox.crypto.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label>{t("sandbox.crypto.currency")}</Label>
             <Select value={currency} onValueChange={(v) => setCurrency(v as typeof currency)}>
               <SelectTrigger className="w-full">
                 <SelectValue>
@@ -249,7 +237,7 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="crypto-amount">Amount</Label>
+            <Label htmlFor="crypto-amount">{t("sandbox.crypto.amount")}</Label>
             <Input
               id="crypto-amount"
               inputMode="decimal"
@@ -259,7 +247,7 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="crypto-address">Customer wallet address</Label>
+            <Label htmlFor="crypto-address">{t("sandbox.crypto.walletAddress")}</Label>
             <Input
               id="crypto-address"
               required
@@ -268,12 +256,10 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
               value={walletAddress}
               onChange={(e) => setWalletAddress(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
-              Only addresses PayCam generated for a customer are accepted.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("sandbox.crypto.walletHint")}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="crypto-description">Description</Label>
+            <Label htmlFor="crypto-description">{t("sandbox.crypto.description2")}</Label>
             <Textarea
               id="crypto-description"
               value={description}
@@ -281,11 +267,9 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading || !apiKey}>
-            {loading ? "Sending…" : "Initiate payment"}
+            {loading ? t("sandbox.crypto.submitLoading") : t("sandbox.crypto.submit")}
           </Button>
-          {!apiKey && (
-            <p className="text-xs text-muted-foreground">Enter an API key above first.</p>
-          )}
+          {!apiKey && <p className="text-xs text-muted-foreground">{t("sandbox.crypto.needKey")}</p>}
         </form>
 
         {error && (
@@ -297,11 +281,11 @@ function CryptoTester({ apiKey }: { apiKey: string }) {
         {result && (
           <div className="space-y-3 rounded-lg border border-border p-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Reference</span>
+              <span className="text-muted-foreground">{t("sandbox.crypto.reference")}</span>
               <span className="font-mono">{result.reference}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Status</span>
+              <span className="text-muted-foreground">{t("sandbox.crypto.status")}</span>
               <span className="capitalize">{result.status}</span>
             </div>
             {result.qr_code && (

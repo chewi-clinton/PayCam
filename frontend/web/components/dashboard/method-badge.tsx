@@ -1,4 +1,7 @@
+"use client";
+
 import { paymentMethodLabel } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const DOT_COLORS: Record<string, string> = {
   mtn_momo: "bg-mtn",
@@ -10,10 +13,11 @@ const DOT_COLORS: Record<string, string> = {
 };
 
 export function MethodBadge({ method }: { method: string }) {
+  const { language } = useLanguage();
   return (
     <span className="inline-flex items-center gap-1.5 text-sm">
       <span className={`h-2 w-2 rounded-full ${DOT_COLORS[method] ?? "bg-muted-foreground"}`} />
-      {paymentMethodLabel(method)}
+      {paymentMethodLabel(method, language)}
     </span>
   );
 }

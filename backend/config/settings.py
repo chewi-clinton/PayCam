@@ -132,6 +132,8 @@ REST_FRAMEWORK = {
         "payments_initiate": "60/min",
         "payments_read": "120/min",
         "login": "10/min",
+        "password_reset": "5/min",
+        "password_reset_confirm": "10/min",
     },
 }
 

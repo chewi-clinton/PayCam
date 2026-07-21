@@ -96,7 +96,7 @@ class InitiatePaymentView(generics.CreateAPIView):
             description=data.get("description"),
             external_reference=data.get("external_reference"),
             idempotency_key=idempotency_key,
-            webhook_url=data.get("webhook_url"),
+            webhook_url=data.get("webhook_url") or request.user.default_webhook_url,
             redirect_url=data.get("redirect_url"),
             expires_at=expires_at,
         )

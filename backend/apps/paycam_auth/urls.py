@@ -9,12 +9,16 @@ from .views import (
     APIKeyCreateView,
     LogoutView,
     ProfileView,
+    ForgotPasswordView,
+    ResetPasswordView,
 )
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("verify-email/", EmailVerifyView.as_view(), name="verify-email"),
     path("login/", LoginView.as_view(), name="login"),
+    path("forgot-password/", ForgotPasswordView.as_view(), name="forgot-password"),
+    path("reset-password/", ResetPasswordView.as_view(), name="reset-password"),
     path("2fa/setup/", TOTPSetupView.as_view(), name="totp-setup"),
     path("2fa/verify/", TOTPVerifyView.as_view(), name="totp-verify"),
     path("api-keys/", APIKeyListView.as_view(), name="api-key-list"),

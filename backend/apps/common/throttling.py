@@ -36,3 +36,26 @@ class LoginRateThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
+
+
+class PasswordResetRateThrottle(SimpleRateThrottle):
+    """Rate-limits password reset *requests* (the emailed OTP) per client IP."""
+
+    scope = "password_reset"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
+
+
+class PasswordResetConfirmRateThrottle(SimpleRateThrottle):
+    """Rate-limits password reset *confirmations* (OTP + new password) per client IP.
+
+    Kept separate from PasswordResetRateThrottle so a user re-entering a
+    mistyped OTP doesn't burn through the same budget that guards against
+    someone spamming reset emails.
+    """
+
+    scope = "password_reset_confirm"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}

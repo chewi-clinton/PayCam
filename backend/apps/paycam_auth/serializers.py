@@ -24,7 +24,21 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "first_name", "last_name", "role", "is_active", "totp_enabled", "created_at"]
+        fields = [
+            "id", "email", "first_name", "last_name", "role", "is_active", "totp_enabled",
+            "created_at", "business_name", "logo_url", "default_webhook_url",
+        ]
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["business_name", "logo_url", "default_webhook_url"]
+        extra_kwargs = {
+            "business_name": {"required": False, "allow_null": True, "allow_blank": True},
+            "logo_url": {"required": False, "allow_null": True, "allow_blank": True},
+            "default_webhook_url": {"required": False, "allow_null": True, "allow_blank": True},
+        }
 
 
 class LoginSerializer(serializers.Serializer):
@@ -54,3 +68,13 @@ class APIKeyCreateSerializer(serializers.Serializer):
 class EmailVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)

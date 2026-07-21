@@ -41,6 +41,20 @@ def verify_email_otp(user_id, otp):
     return False
 
 
+def store_password_reset_otp(user_id, otp, ttl_minutes=10):
+    key = f"otp:password_reset:{user_id}"
+    get_redis_client().setex(key, ttl_minutes * 60, otp)
+
+
+def verify_password_reset_otp(user_id, otp):
+    key = f"otp:password_reset:{user_id}"
+    stored = get_redis_client().get(key)
+    if stored and stored == otp:
+        get_redis_client().delete(key)
+        return True
+    return False
+
+
 # ========== Brevo Email ==========
 
 import sib_api_v3_sdk
@@ -71,6 +85,35 @@ def send_email_otp(to_email, otp):
     except ApiException as e:
         print(f"Brevo email error: {e}")
         return False
+
+
+def send_password_reset_otp(to_email, otp):
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key["api-key"] = settings.BREVO_API_KEY
+
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": to_email}],
+        sender={"email": "dr@trimaxapharmacy.com", "name": "PayCam"},
+        subject="Reset your PayCam password",
+        html_content=f"""
+        <h2>PayCam Password Reset</h2>
+        <p>Your password reset code is:</p>
+        <h1 style="font-size: 32px; letter-spacing: 4px;">{otp}</h1>
+        <p>This code expires in 10 minutes.</p>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        """
+    )
+
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        return True
+    except ApiException as e:
+        print(f"Brevo email error: {e}")
+        return False
+
+
 # ========== JWT ==========
 
 def generate_jwt(user_id, token_version):

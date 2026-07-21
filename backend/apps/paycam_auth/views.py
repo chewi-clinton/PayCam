@@ -3,17 +3,24 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.conf import settings
-from apps.common.throttling import LoginRateThrottle
+from apps.common.throttling import (
+    LoginRateThrottle,
+    PasswordResetRateThrottle,
+    PasswordResetConfirmRateThrottle,
+)
 from .models import User, APIKey
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
+    ProfileUpdateSerializer,
     LoginSerializer,
     TOTPSetupSerializer,
     TOTPVerifySerializer,
     APIKeySerializer,
     APIKeyCreateSerializer,
     EmailVerifySerializer,
+    ForgotPasswordSerializer,
+    ResetPasswordSerializer,
 )
 from .utils import (
     generate_jwt,
@@ -30,6 +37,9 @@ from .utils import (
     store_email_otp,
     verify_email_otp,
     send_email_otp,
+    store_password_reset_otp,
+    verify_password_reset_otp,
+    send_password_reset_otp,
 )
 
 
@@ -290,9 +300,75 @@ class LogoutView(generics.GenericAPIView):
         )
 
 
-class ProfileView(generics.RetrieveAPIView):
-    serializer_class = UserSerializer
+class ProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "patch"]
+
+    def get_serializer_class(self):
+        if self.request.method == "PATCH":
+            return ProfileUpdateSerializer
+        return UserSerializer
 
     def get_object(self):
         return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        return Response(UserSerializer(request.user).data)
+
+
+class ForgotPasswordView(generics.GenericAPIView):
+    serializer_class = ForgotPasswordSerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        generic_response = Response(
+            {"message": "If an account exists for that email, we've sent a password reset code."},
+            status=status.HTTP_200_OK,
+        )
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return generic_response
+        if not user.is_active:
+            return generic_response
+        otp = generate_otp()
+        store_password_reset_otp(user.id, otp, ttl_minutes=10)
+        send_password_reset_otp(user.email, otp)
+        return generic_response
+
+
+class ResetPasswordView(generics.GenericAPIView):
+    serializer_class = ResetPasswordSerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetConfirmRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+        new_password = serializer.validated_data["new_password"]
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "invalid_request", "code": "PAY_CAM_4000", "message": "Invalid or expired reset code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not verify_password_reset_otp(user.id, otp):
+            return Response(
+                {"error": "invalid_otp", "code": "PAY_CAM_4000", "message": "Invalid or expired reset code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        user.revoke_all_tokens()
+        return Response(
+            {"message": "Password reset successfully. Please log in with your new password."},
+            status=status.HTTP_200_OK,
+        )

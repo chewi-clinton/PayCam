@@ -107,7 +107,7 @@ class CryptoInitiateView(generics.CreateAPIView):
             external_reference=data.get("external_reference"),
             crypto_wallet_address=wallet_address,
             idempotency_key=idempotency_key,
-            webhook_url=data.get("webhook_url"),
+            webhook_url=data.get("webhook_url") or request.user.default_webhook_url,
             redirect_url=data.get("redirect_url"),
             expires_at=expires_at,
         )

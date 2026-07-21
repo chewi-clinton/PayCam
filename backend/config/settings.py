@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.sandbox",
     "apps.crypto",
     "apps.common",
+    "apps.admin_console",
 ]
 
 MIDDLEWARE = [
@@ -144,6 +145,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://paycam.cm",
     "https://dashboard.paycam.cm",
     "https://paycam-dashboard.zardocard.com",
+    "https://paycam-admin.zardocard.com",
 ]
 
 CELERY_BROKER_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
@@ -209,6 +211,7 @@ SPECTACULAR_SETTINGS = {
         {"name": "Mobile App", "description": "V1 — Flutter app customer endpoints (registration, login, payment approval)."},
         {"name": "Webhooks", "description": "V1 — Webhook delivery logs and verification utilities"},
         {"name": "Dashboard", "description": "Merchant dashboard aggregate stats (Next.js frontend)."},
+        {"name": "Admin", "description": "PayCam staff console — merchant directory, suspend/reactivate, API key revocation."},
     ],
 }
 

@@ -24,6 +24,8 @@ class APIKeyAuthentication(BaseAuthentication):
                 break
         if matched_key is None:
             raise AuthenticationFailed("Invalid or expired API key.")
+        if matched_key.merchant.is_suspended:
+            raise AuthenticationFailed("This merchant account has been suspended.")
         matched_key.last_used_at = timezone.now()
         matched_key.save(update_fields=["last_used_at"])
         return (matched_key.merchant, matched_key)

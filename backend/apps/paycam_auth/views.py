@@ -144,6 +144,11 @@ class LoginView(generics.GenericAPIView):
                 {"error": "unauthorized", "code": "PAY_CAM_4011", "message": "Account not verified. Please verify your email."},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+        if user.is_suspended:
+            return Response(
+                {"error": "unauthorized", "code": "PAY_CAM_4011", "message": "This account has been suspended."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         if user.role == "admin" and not user.totp_enabled:
             return Response(
                 {

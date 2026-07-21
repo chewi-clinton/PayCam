@@ -23,4 +23,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         if user.token_version != payload["token_version"]:
             raise exceptions.AuthenticationFailed("Token revoked.")
 
+        if user.is_suspended:
+            raise exceptions.AuthenticationFailed("This account has been suspended.")
+
         return (user, None)

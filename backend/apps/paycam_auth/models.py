@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     business_name = models.CharField(max_length=255, null=True, blank=True)
     logo_url = models.URLField(max_length=500, null=True, blank=True)
     default_webhook_url = models.URLField(max_length=500, null=True, blank=True)
+    is_suspended = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

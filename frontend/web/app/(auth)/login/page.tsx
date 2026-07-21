@@ -14,6 +14,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const expired = searchParams.get("expired") === "1";
+  const resetSuccess = searchParams.get("reset") === "1";
   const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
@@ -62,6 +63,11 @@ function LoginForm() {
           <AlertDescription>{t("auth.login.sessionExpired")}</AlertDescription>
         </Alert>
       )}
+      {resetSuccess && (
+        <Alert>
+          <AlertDescription>{t("auth.login.resetSuccess")}</AlertDescription>
+        </Alert>
+      )}
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -81,7 +87,12 @@ function LoginForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">{t("auth.login.password")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">{t("auth.login.password")}</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+              {t("auth.login.forgotPassword")}
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"

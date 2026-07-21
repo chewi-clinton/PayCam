@@ -30,6 +30,88 @@ import { formatDate } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/i18n/language-context";
 
+function BusinessProfile() {
+  const { t } = useLanguage();
+  const { merchant, refreshProfile } = useAuth();
+  const [businessName, setBusinessName] = useState(merchant?.business_name ?? "");
+  const [logoUrl, setLogoUrl] = useState(merchant?.logo_url ?? "");
+  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState(merchant?.default_webhook_url ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      await api.updateProfile({
+        business_name: businessName || null,
+        logo_url: logoUrl || null,
+        default_webhook_url: defaultWebhookUrl || null,
+      });
+      await refreshProfile();
+      toast.success(t("settings.businessProfile.saved"));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("common.genericError"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("settings.businessProfile.title")}</CardTitle>
+        <CardDescription>{t("settings.businessProfile.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSave} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="business-name">{t("settings.businessProfile.businessName")}</Label>
+            <Input
+              id="business-name"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder={t("settings.businessProfile.businessNamePlaceholder")}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="logo-url">{t("settings.businessProfile.logoUrl")}</Label>
+            <Input
+              id="logo-url"
+              type="url"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://example.com/logo.png"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="default-webhook-url">{t("settings.businessProfile.defaultWebhookUrl")}</Label>
+            <Input
+              id="default-webhook-url"
+              type="url"
+              value={defaultWebhookUrl}
+              onChange={(e) => setDefaultWebhookUrl(e.target.value)}
+              placeholder="https://example.com/webhooks/paycam"
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("settings.businessProfile.defaultWebhookUrlHint")}
+            </p>
+          </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? t("settings.businessProfile.saving") : t("settings.businessProfile.save")}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function TwoFactorSetup() {
   const { t } = useLanguage();
   const { refreshProfile } = useAuth();
@@ -199,6 +281,8 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <BusinessProfile />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">

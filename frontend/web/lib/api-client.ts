@@ -82,6 +82,9 @@ export type Merchant = {
   is_active: boolean;
   totp_enabled: boolean;
   created_at: string;
+  business_name: string | null;
+  logo_url: string | null;
+  default_webhook_url: string | null;
 };
 
 export type ApiKey = {
@@ -161,6 +164,30 @@ export const api = {
   logout: () => request<{ message: string }>("/auth/logout/", { method: "POST" }),
 
   profile: () => request<Merchant>("/auth/profile/"),
+
+  updateProfile: (data: {
+    business_name?: string | null;
+    logo_url?: string | null;
+    default_webhook_url?: string | null;
+  }) =>
+    request<Merchant>("/auth/profile/", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  forgotPassword: (email: string) =>
+    request<{ message: string }>("/auth/forgot-password/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+      auth: false,
+    }),
+
+  resetPassword: (data: { email: string; otp: string; new_password: string }) =>
+    request<{ message: string }>("/auth/reset-password/", {
+      method: "POST",
+      body: JSON.stringify(data),
+      auth: false,
+    }),
 
   totpSetup: (password: string) =>
     request<{ secret: string; uri: string; message: string }>("/auth/2fa/setup/", {

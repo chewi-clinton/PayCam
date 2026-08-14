@@ -26,6 +26,12 @@ export const translations = {
       history: "History",
       profile: "Profile",
     },
+    status: {
+      success: "Success",
+      pending: "Pending",
+      failed: "Failed",
+      expired: "Expired",
+    },
     welcome: {
       title: "Welcome to the Future",
       subtitle: "Secure African Payment Wallet",
@@ -224,6 +230,12 @@ export const translations = {
       scan: "Scanner",
       history: "Historique",
       profile: "Profil",
+    },
+    status: {
+      success: "Réussi",
+      pending: "En attente",
+      failed: "Échoué",
+      expired: "Expiré",
     },
     welcome: {
       title: "Bienvenue dans le futur",

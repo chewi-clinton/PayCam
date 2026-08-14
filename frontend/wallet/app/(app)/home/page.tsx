@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Send, Download, QrCode, History } from "lucide-react";
 import { BalanceCard } from "@/components/wallet/balance-card";
+import { TransactionRow } from "@/components/transactions/transaction-row";
 import { useAuth } from "@/lib/auth-context";
+import { useTransactions } from "@/lib/transactions-context";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const QUICK_ACTIONS = [
@@ -15,7 +17,9 @@ const QUICK_ACTIONS = [
 
 export default function HomePage() {
   const { user, wallet } = useAuth();
+  const { transactions } = useTransactions();
   const { t } = useLanguage();
+  const recent = transactions.slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -45,9 +49,17 @@ export default function HomePage() {
             {t("home.seeAll")}
           </Link>
         </div>
-        <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          {t("home.noTransactionsYet")}
-        </p>
+        {recent.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            {t("home.noTransactionsYet")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {recent.map((txn) => (
+              <TransactionRow key={txn.reference} transaction={txn} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

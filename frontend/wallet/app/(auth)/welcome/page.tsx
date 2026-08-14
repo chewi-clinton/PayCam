@@ -1,24 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import Lottie from "lottie-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
+import walletSecure from "@/lib/lottie/wallet_secure.json";
 
 export default function WelcomePage() {
   const { t } = useLanguage();
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
-      <Image src="/brand/logo-badge-black.png" alt="PayCam" width={72} height={72} className="rounded-2xl dark:hidden" />
-      <Image
-        src="/brand/logo-badge-black.png"
-        alt="PayCam"
-        width={72}
-        height={72}
-        className="hidden rounded-2xl dark:block dark:invert"
-      />
+      <Lottie animationData={walletSecure} loop className="w-48" />
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">{t("welcome.title")}</h1>
         <p className="text-muted-foreground">{t("welcome.subtitle")}</p>

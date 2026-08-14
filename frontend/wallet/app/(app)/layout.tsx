@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { TransactionsProvider } from "@/lib/transactions-context";
+import { PinRelockProvider } from "@/lib/pin-relock-context";
+import { RelockOverlay } from "@/components/pin/relock-overlay";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { useLanguage } from "@/lib/i18n/language-context";
 
@@ -28,8 +30,11 @@ function Guard({ children }: { children: React.ReactNode }) {
 
   return (
     <TransactionsProvider>
-      <div className="mx-auto min-h-screen w-full max-w-md px-4 py-6 pb-24">{children}</div>
-      <BottomNav />
+      <PinRelockProvider>
+        <div className="mx-auto min-h-screen w-full max-w-md px-4 py-6 pb-24">{children}</div>
+        <BottomNav />
+        <RelockOverlay />
+      </PinRelockProvider>
     </TransactionsProvider>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
+import Lottie from "lottie-react";
 import { BalanceCard } from "@/components/wallet/balance-card";
 import { CryptoWalletCard } from "@/components/wallet/crypto-wallet-card";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/i18n/language-context";
+import cryptoGrowth from "@/lib/lottie/crypto_growth.json";
 
 export default function WalletPage() {
   const { wallet, cryptoWallets } = useAuth();
@@ -19,7 +21,10 @@ export default function WalletPage() {
       <BalanceCard wallet={wallet} />
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold">{t("wallet.cryptoWallets")}</h2>
+        <div className="mb-2 flex items-center gap-2">
+          <Lottie animationData={cryptoGrowth} loop className="h-8 w-8" />
+          <h2 className="text-sm font-semibold">{t("wallet.cryptoWallets")}</h2>
+        </div>
         {cryptoWallets.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             {t("wallet.noCryptoWallets")}

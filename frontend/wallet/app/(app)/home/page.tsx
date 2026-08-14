@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Send, Download, QrCode, History } from "lucide-react";
+import { Send, Download, QrCode, History, Bell } from "lucide-react";
 import { BalanceCard } from "@/components/wallet/balance-card";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { useAuth } from "@/lib/auth-context";
 import { useTransactions } from "@/lib/transactions-context";
+import { usePendingPayments } from "@/lib/use-pending-payments";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const QUICK_ACTIONS = [
@@ -18,6 +19,7 @@ const QUICK_ACTIONS = [
 export default function HomePage() {
   const { user, wallet } = useAuth();
   const { transactions } = useTransactions();
+  const { pending } = usePendingPayments();
   const { t } = useLanguage();
   const recent = transactions.slice(0, 3);
 
@@ -28,6 +30,18 @@ export default function HomePage() {
       </div>
 
       <BalanceCard wallet={wallet} />
+
+      {pending.length > 0 && (
+        <Link
+          href="/requests"
+          className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 p-3 transition-colors hover:bg-warning/15"
+        >
+          <Bell className="h-5 w-5 shrink-0 text-warning" />
+          <span className="text-sm font-medium">
+            {t("home.pendingRequestsCount", { n: pending.length, s: pending.length === 1 ? "" : "s" })}
+          </span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-4 gap-2">
         {QUICK_ACTIONS.map(({ href, key, icon: Icon }) => (

@@ -143,10 +143,12 @@ AUTH_USER_MODEL = "paycam_auth.User"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:3100",
     "https://paycam.cm",
     "https://dashboard.paycam.cm",
     "https://paycam-dashboard.zardocard.com",
     "https://paycam-admin.zardocard.com",
+    "https://paycam-wallet.zardocard.com",
 ]
 
 ADMIN_FRONTEND_URL = os.getenv("ADMIN_FRONTEND_URL", "https://paycam-admin.zardocard.com")

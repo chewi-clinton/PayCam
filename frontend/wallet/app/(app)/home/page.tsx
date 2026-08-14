@@ -25,8 +25,14 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{user?.full_name}</p>
+        <Link href="/notifications" className="relative text-primary">
+          <Bell className="h-5 w-5" />
+          {pending.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive" />
+          )}
+        </Link>
       </div>
 
       <BalanceCard wallet={wallet} />

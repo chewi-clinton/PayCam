@@ -158,6 +158,10 @@ export const translations = {
       paymentDeclinedTitle: "Payment Declined",
       justNow: "Just now",
       pay: "Pay",
+      requestBody: "{merchant} is requesting {amount}.",
+      requestBodyWithDescription: "{merchant} is requesting {amount} for {description}.",
+      paymentSuccessBody: "Your payment of {amount} to {merchant} was successful.",
+      paymentOtherBody: "Your transaction at {merchant} for {amount} was {status}.",
     },
     profile: {
       security: "Security",
@@ -363,6 +367,10 @@ export const translations = {
       paymentDeclinedTitle: "Paiement refusé",
       justNow: "À l'instant",
       pay: "Payer",
+      requestBody: "{merchant} demande {amount}.",
+      requestBodyWithDescription: "{merchant} demande {amount} pour {description}.",
+      paymentSuccessBody: "Votre paiement de {amount} à {merchant} a réussi.",
+      paymentOtherBody: "Votre transaction chez {merchant} pour {amount} était {status}.",
     },
     profile: {
       security: "Sécurité",

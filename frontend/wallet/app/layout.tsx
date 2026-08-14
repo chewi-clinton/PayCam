@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/lib/i18n/language-context";
+import { SettingsProvider } from "@/lib/settings-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,8 +35,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <LanguageProvider>
-            {children}
-            <Toaster richColors position="top-right" />
+            <SettingsProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </SettingsProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

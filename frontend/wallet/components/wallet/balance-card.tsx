@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatAmount, monoNumeric } from "@/lib/format";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { useSettings } from "@/lib/settings-context";
 import type { Wallet } from "@/lib/api-client";
 
 export function BalanceCard({ wallet }: { wallet: Wallet | null }) {
   const { t } = useLanguage();
-  const [hidden, setHidden] = useState(false);
+  const { hideBalance } = useSettings();
+  const [hidden, setHidden] = useState(hideBalance);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- adopt the persisted default once settings hydrate from localStorage
+    setHidden(hideBalance);
+  }, [hideBalance]);
 
   return (
     <Card className="border-none bg-primary p-6 text-primary-foreground">

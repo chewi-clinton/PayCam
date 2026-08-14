@@ -6,9 +6,7 @@ export const translations = {
       invites: "Invites",
     },
     common: {
-      loading: "Loading…",
       never: "Never",
-      empty: "—",
       genericError: "Something went wrong. Please try again.",
       cancel: "Cancel",
       previous: "Previous",
@@ -107,7 +105,6 @@ export const translations = {
       backToMerchants: "Back to merchants",
       failedToLoad: "Failed to load merchant.",
       account: {
-        title: "Account",
         name: "Name",
         email: "Email",
         businessName: "Business name",
@@ -158,9 +155,7 @@ export const translations = {
       invites: "Invitations",
     },
     common: {
-      loading: "Chargement…",
       never: "Jamais",
-      empty: "—",
       genericError: "Une erreur est survenue. Veuillez réessayer.",
       cancel: "Annuler",
       previous: "Précédent",
@@ -259,7 +254,6 @@ export const translations = {
       backToMerchants: "Retour aux marchands",
       failedToLoad: "Échec du chargement du marchand.",
       account: {
-        title: "Compte",
         name: "Nom",
         email: "E-mail",
         businessName: "Nom de l'entreprise",

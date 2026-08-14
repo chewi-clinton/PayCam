@@ -2,12 +2,11 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { api, getToken, setToken, clearToken, type Admin } from "./api-client";
+import { api, getToken, clearToken, type Admin } from "./api-client";
 
 type AuthState = {
   admin: Admin | null;
   loading: boolean;
-  refreshProfile: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ admin, loading, refreshProfile, logout }}>
+    <AuthContext.Provider value={{ admin, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -67,5 +66,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-
-export { setToken };
